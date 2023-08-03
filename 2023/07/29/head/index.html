@@ -6,22 +6,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="How to manage memory in the oswhich kids of memorys in the os Virtual Memory Physical Memory Cache Page File  Virtual MemoryVirtual memory is a kind of memory that is specifically designed for the ope">
+    <meta name="description" content="what is heap?To understand what a heap is, you must have a good grasp of the concepts of processes and virtual memory. How to manage memory in the oswhich kids of memorys in the os Virtual Memory Phys">
 <meta property="og:type" content="article">
-<meta property="og:title" content="the introduce of heap">
+<meta property="og:title" content="The introduce of heap">
 <meta property="og:url" content="http://hellowbai.github/2023/07/29/head/index.html">
 <meta property="og:site_name" content="Patton">
-<meta property="og:description" content="How to manage memory in the oswhich kids of memorys in the os Virtual Memory Physical Memory Cache Page File  Virtual MemoryVirtual memory is a kind of memory that is specifically designed for the ope">
+<meta property="og:description" content="what is heap?To understand what a heap is, you must have a good grasp of the concepts of processes and virtual memory. How to manage memory in the oswhich kids of memorys in the os Virtual Memory Phys">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://en.wikipedia.org/wiki/Process_(computing)">
-<meta property="og:image" content="https://www.cs.uah.edu/~rcoleman/Common/C_Reference/MemoryAlloc.html">
 <meta property="article:published_time" content="2023-07-29T06:05:00.000Z">
-<meta property="article:modified_time" content="2023-08-03T14:24:49.054Z">
+<meta property="article:modified_time" content="2023-08-03T14:35:07.816Z">
 <meta property="article:author" content="Allen">
 <meta property="article:tag" content="os">
 <meta property="article:tag" content="memory">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://en.wikipedia.org/wiki/Process_(computing)">
     
     
       
@@ -41,7 +38,7 @@
       
     
     <!-- title -->
-    <title>the introduce of heap</title>
+    <title>The introduce of heap</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -101,23 +98,23 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2023/07/29/head/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2023/07/29/head/&text=the introduce of heap"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2023/07/29/head/&is_video=false&description=the introduce of heap"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=the introduce of heap&body=Check out this article: http://hellowbai.github/2023/07/29/head/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2023/07/29/head/&name=the introduce of heap&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2023/07/29/head/&t=the introduce of heap"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2023/07/29/head/&text=The introduce of heap"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2023/07/29/head/&is_video=false&description=The introduce of heap"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=The introduce of heap&body=Check out this article: http://hellowbai.github/2023/07/29/head/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2023/07/29/head/&name=The introduce of heap&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2023/07/29/head/&t=The introduce of heap"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#How-to-manage-memory-in-the-os"><span class="toc-number">1.</span> <span class="toc-text">How to manage memory in the os</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#which-kids-of-memorys-in-the-os"><span class="toc-number">1.1.</span> <span class="toc-text">which kids of memorys in the os</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Virtual-Memory"><span class="toc-number">1.2.</span> <span class="toc-text">Virtual Memory</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#How-to-allocate-memory-in-the-heap"><span class="toc-number">2.</span> <span class="toc-text">How to allocate memory in the heap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Introducing-malloc"><span class="toc-number">3.</span> <span class="toc-text">Introducing malloc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">4.</span> <span class="toc-text">Conclusion</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#what-is-heap"><span class="toc-number">1.</span> <span class="toc-text">what is heap?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#How-to-manage-memory-in-the-os"><span class="toc-number">2.</span> <span class="toc-text">How to manage memory in the os</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#which-kids-of-memorys-in-the-os"><span class="toc-number">2.1.</span> <span class="toc-text">which kids of memorys in the os</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Virtual-Memory"><span class="toc-number">2.2.</span> <span class="toc-text">Virtual Memory</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#How-to-allocate-memory-in-the-heap"><span class="toc-number">3.</span> <span class="toc-text">How to allocate memory in the heap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Introducing-malloc"><span class="toc-number">4.</span> <span class="toc-text">Introducing malloc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">5.</span> <span class="toc-text">Conclusion</span></a></li></ol>
       </div>
     
   </span>
@@ -130,7 +127,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        the introduce of heap
+        The introduce of heap
     </h1>
 
 
@@ -167,16 +164,17 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <h2 id="How-to-manage-memory-in-the-os"><a href="#How-to-manage-memory-in-the-os" class="headerlink" title="How to manage memory in the os"></a>How to manage memory in the os</h2><h3 id="which-kids-of-memorys-in-the-os"><a href="#which-kids-of-memorys-in-the-os" class="headerlink" title="which kids of memorys in the os"></a>which kids of memorys in the os</h3><ul>
+    <h2 id="what-is-heap"><a href="#what-is-heap" class="headerlink" title="what is heap?"></a>what is heap?</h2><p>To understand what a heap is, you must have a good grasp of the concepts of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Process_(computing)">processes</a> and virtual memory.</p>
+<h2 id="How-to-manage-memory-in-the-os"><a href="#How-to-manage-memory-in-the-os" class="headerlink" title="How to manage memory in the os"></a>How to manage memory in the os</h2><h3 id="which-kids-of-memorys-in-the-os"><a href="#which-kids-of-memorys-in-the-os" class="headerlink" title="which kids of memorys in the os"></a>which kids of memorys in the os</h3><ul>
 <li>Virtual Memory</li>
 <li>Physical Memory</li>
 <li>Cache</li>
 <li>Page File</li>
 </ul>
 <h3 id="Virtual-Memory"><a href="#Virtual-Memory" class="headerlink" title="Virtual Memory"></a>Virtual Memory</h3><p>Virtual memory is a kind of memory that is specifically designed for the operating system to manage.<br>The operating system maps virtual memory to physical memory and manages it accordingly.</p>
-<p>The <img src="https://en.wikipedia.org/wiki/Process_(computing)" alt="process"> can allocate virtual memory only and cannot access other types of memory</p>
-<h2 id="How-to-allocate-memory-in-the-heap"><a href="#How-to-allocate-memory-in-the-heap" class="headerlink" title="How to allocate memory in the heap"></a>How to allocate memory in the heap</h2><p><img src="https://www.cs.uah.edu/~rcoleman/Common/C_Reference/MemoryAlloc.html" alt="references"></p>
-<h2 id="Introducing-malloc"><a href="#Introducing-malloc" class="headerlink" title="Introducing malloc"></a>Introducing malloc</h2><h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2>
+<p>The processes can allocate virtual memory only and cannot access other types of memory</p>
+<h2 id="How-to-allocate-memory-in-the-heap"><a href="#How-to-allocate-memory-in-the-heap" class="headerlink" title="How to allocate memory in the heap"></a>How to allocate memory in the heap</h2><h2 id="Introducing-malloc"><a href="#Introducing-malloc" class="headerlink" title="Introducing malloc"></a>Introducing malloc</h2><h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p><a target="_blank" rel="noopener" href="https://www.cs.uah.edu/~rcoleman/Common/C_Reference/MemoryAlloc.html">references</a></p>
+
   </div>
 </article>
 
@@ -209,23 +207,23 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#How-to-manage-memory-in-the-os"><span class="toc-number">1.</span> <span class="toc-text">How to manage memory in the os</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#which-kids-of-memorys-in-the-os"><span class="toc-number">1.1.</span> <span class="toc-text">which kids of memorys in the os</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Virtual-Memory"><span class="toc-number">1.2.</span> <span class="toc-text">Virtual Memory</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#How-to-allocate-memory-in-the-heap"><span class="toc-number">2.</span> <span class="toc-text">How to allocate memory in the heap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Introducing-malloc"><span class="toc-number">3.</span> <span class="toc-text">Introducing malloc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">4.</span> <span class="toc-text">Conclusion</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#what-is-heap"><span class="toc-number">1.</span> <span class="toc-text">what is heap?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#How-to-manage-memory-in-the-os"><span class="toc-number">2.</span> <span class="toc-text">How to manage memory in the os</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#which-kids-of-memorys-in-the-os"><span class="toc-number">2.1.</span> <span class="toc-text">which kids of memorys in the os</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Virtual-Memory"><span class="toc-number">2.2.</span> <span class="toc-text">Virtual Memory</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#How-to-allocate-memory-in-the-heap"><span class="toc-number">3.</span> <span class="toc-text">How to allocate memory in the heap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Introducing-malloc"><span class="toc-number">4.</span> <span class="toc-text">Introducing malloc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">5.</span> <span class="toc-text">Conclusion</span></a></li></ol>
       </div>
     
 
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2023/07/29/head/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2023/07/29/head/&text=the introduce of heap"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2023/07/29/head/&is_video=false&description=the introduce of heap"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=the introduce of heap&body=Check out this article: http://hellowbai.github/2023/07/29/head/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=the introduce of heap"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2023/07/29/head/&name=the introduce of heap&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2023/07/29/head/&t=the introduce of heap"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2023/07/29/head/&text=The introduce of heap"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2023/07/29/head/&is_video=false&description=The introduce of heap"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=The introduce of heap&body=Check out this article: http://hellowbai.github/2023/07/29/head/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2023/07/29/head/&title=The introduce of heap"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2023/07/29/head/&name=The introduce of heap&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2023/07/29/head/&t=The introduce of heap"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -325,7 +323,7 @@
       var utterances_repo = 'hellowBai/comments_server';
       var utterances_issue_term = 'pathname';
       var utterances_label = 'Comment';
-      var utterances_theme = 'github-dark';
+      var utterances_theme = 'github-light';
 
       (function(){
           var script = document.createElement('script');
