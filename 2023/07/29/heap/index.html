@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="what is heap?To understand what a heap is, you must have a good grasp of the concepts of processes , virtual memory and virtual memory management mechanism. The processes can allocate virtual memory o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The introduce of heap">
+<meta property="og:url" content="http://hellowbai.github/2023/07/29/heap/index.html">
+<meta property="og:site_name" content="Patton">
+<meta property="og:description" content="what is heap?To understand what a heap is, you must have a good grasp of the concepts of processes , virtual memory and virtual memory management mechanism. The processes can allocate virtual memory o">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-07-29T06:05:00.000Z">
+<meta property="article:modified_time" content="2023-08-04T17:24:09.122Z">
+<meta property="article:author" content="Allen">
+<meta property="article:tag" content="os">
+<meta property="article:tag" content="memory">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>The introduce of heap</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/07/29/test/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2023/07/29/heap/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2023/07/29/heap/&text=The introduce of heap"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2023/07/29/heap/&is_video=false&description=The introduce of heap"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=The introduce of heap&body=Check out this article: http://hellowbai.github/2023/07/29/heap/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2023/07/29/heap/&name=The introduce of heap&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2023/07/29/heap/&t=The introduce of heap"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#what-is-heap"><span class="toc-number">1.</span> <span class="toc-text">what is heap?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#When-does-the-heap-get-allocated-and-how-to-do-it"><span class="toc-number">2.</span> <span class="toc-text">When does the heap get allocated and how to do it ?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Analyzing-heap-by-gdb"><span class="toc-number">3.</span> <span class="toc-text">Analyzing heap by gdb</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">4.</span> <span class="toc-text">Conclusion</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        The introduce of heap
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Allen</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-07-29T06:05:00.000Z" class="dt-published" itemprop="datePublished">2023-07-29</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/os/">os</a> › <a class="category-link" href="/categories/os/memory/">memory</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/memory/" rel="tag">memory</a>, <a class="p-category" href="/tags/os/" rel="tag">os</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="what-is-heap"><a href="#what-is-heap" class="headerlink" title="what is heap?"></a>what is heap?</h2><p>To understand what a heap is, you must have a good grasp of the concepts of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Process_(computing)">processes</a> , virtual memory and <a target="_blank" rel="noopener" href="https://www.geeksforgeeks.org/memory-management-in-operating-system/">virtual memory management mechanism</a>. The processes can allocate virtual memory only and cannot access other types of memory。 Heap is a type of memory which need needs to be released by the programmer. os will allocate some data to the heap according to the virtual memory management mechanism. Heap memory is also known as “dynamic” memory.</p>
+<h2 id="When-does-the-heap-get-allocated-and-how-to-do-it"><a href="#When-does-the-heap-get-allocated-and-how-to-do-it" class="headerlink" title="When does the heap get allocated and how to do it ?"></a>When does the heap get allocated and how to do it ?</h2><p>The heap get allocated when a program needs to allocate memory for an object or data structure that exceeds the amount of available memory in the stack by call malloc. We can understand more detail in <a target="_blank" rel="noopener" href="https://www.geeksforgeeks.org/memory-management-in-operating-system/">virtual memory management mechanism</a></p>
+<h2 id="Analyzing-heap-by-gdb"><a href="#Analyzing-heap-by-gdb" class="headerlink" title="Analyzing heap by gdb"></a>Analyzing heap by gdb</h2><p>This is a simply codes:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;isotream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> a)&#123;<span class="keyword">this</span>-&gt;size = a;&#125;;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">A</span>()&#123;&#125;;</span><br><span class="line">    <span class="type">int</span> size;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span>  A</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">B</span>(<span class="type">int</span> a) : <span class="built_in">A</span> (a)&#123;</span><br><span class="line">        <span class="keyword">this</span> -&gt; size = a;</span><br><span class="line">        <span class="keyword">this</span> -&gt; a = <span class="keyword">new</span> <span class="built_in">A</span>(<span class="number">3</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    ~<span class="built_in">B</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">delete</span> <span class="keyword">this</span>-&gt; a;</span><br><span class="line">    &#125;</span><br><span class="line">    A* a;</span><br><span class="line">    <span class="type">int</span> size;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    B* b = <span class="keyword">new</span> <span class="built_in">B</span>(<span class="number">5</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>let’s see the address:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">(gdb) p b</span><br><span class="line"><span class="variable">$3</span> = (B *) 0x55555556aeb0</span><br><span class="line"></span><br><span class="line">(gdb)p this-&gt;aa</span><br><span class="line"><span class="variable">$6</span> = (A *) 0x55555556aee0</span><br><span class="line"></span><br><span class="line">(gdb) x/24ax 0x55555556aeb0-0x10</span><br><span class="line">0x55555556aea0: 0x00000000      0x00000000      0x00000031      0x00000000</span><br><span class="line">0x55555556aeb0: 0x55557d28      0x00005555      0x00000005      0x00000000</span><br><span class="line">0x55555556aec0: 0x5556aee0      0x00005555      0x00000005      0x00000000</span><br><span class="line">0x55555556aed0: 0x00000000      0x00000000      0x00000021      0x00000000</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">0x55555556aee0: 0x55557d48      0x00005555      0x00000003      0x00000000</span><br><span class="line">0x55555556aef0: 0x00000000      0x00000000      0x0000f111      0x00000000</span><br></pre></td></tr></table></figure>
+
+<p>We need have a good grasp of the os and then analyze the address. If you want to know  the gdb, you can learn it in<br><a target="_blank" rel="noopener" href="https://sourceware.org/gdb/documentation/">gdb official websits</a></p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p><a target="_blank" rel="noopener" href="https://www.cs.uah.edu/~rcoleman/Common/C_Reference/MemoryAlloc.html">references</a></p>
+
+  </div>
+</article>
+
+
+    <div class="blog-post-comments">
+        <div id="utterances_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#what-is-heap"><span class="toc-number">1.</span> <span class="toc-text">what is heap?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#When-does-the-heap-get-allocated-and-how-to-do-it"><span class="toc-number">2.</span> <span class="toc-text">When does the heap get allocated and how to do it ?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Analyzing-heap-by-gdb"><span class="toc-number">3.</span> <span class="toc-text">Analyzing heap by gdb</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">4.</span> <span class="toc-text">Conclusion</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2023/07/29/heap/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2023/07/29/heap/&text=The introduce of heap"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2023/07/29/heap/&is_video=false&description=The introduce of heap"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=The introduce of heap&body=Check out this article: http://hellowbai.github/2023/07/29/heap/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2023/07/29/heap/&title=The introduce of heap"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2023/07/29/heap/&name=The introduce of heap&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2023/07/29/heap/&t=The introduce of heap"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    Allen
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+    <script type="text/javascript">
+      var utterances_repo = 'hellowBai/comments_server';
+      var utterances_issue_term = 'comments_path';
+      var utterances_label = 'Comment';
+      var utterances_theme = 'github-light';
+
+      (function(){
+          var script = document.createElement('script');
+
+          script.src = 'https://utteranc.es/client.js';
+          script.setAttribute('repo', utterances_repo);
+          script.setAttribute('issue-term', 'pathname');
+          script.setAttribute('label', utterances_label);
+          script.setAttribute('theme', utterances_theme);
+          script.setAttribute('crossorigin', 'anonymous');
+          script.async = true;
+          (document.getElementById('utterances_thread')).appendChild(script);
+      }());
+  </script>
+
+</body>
+</html>
