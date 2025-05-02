@@ -14,9 +14,12 @@
 <meta property="og:description" content="序言这边暂时记录下零零散散的一些问题，后面再统一整理下 内存申请内存的申请步骤 ：  线程在使用 malloc 过程中申请内存，先要判断事放在堆里面 ， 还是 mmap 里面.判断过程：   申请的内存比较大， 直接放在mmap 里面。如果申请的内存比较小，就需要判断前没有线程在申请堆的内存， 那么就放在堆里面，有的话，就放在mmap 里面   堆里面如何申请内存调用系统调用 brk 就好了， 每">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-05-02T14:43:03.000Z">
-<meta property="article:modified_time" content="2025-05-02T15:25:35.652Z">
+<meta property="article:modified_time" content="2025-05-02T15:56:49.494Z">
 <meta property="article:author" content="Allen">
-<meta property="article:tag" content="内存管理 内存泄露 malloc libc">
+<meta property="article:tag" content="内存管理">
+<meta property="article:tag" content="内存泄露">
+<meta property="article:tag" content="malloc">
+<meta property="article:tag" content="libc">
 <meta name="twitter:card" content="summary">
     
     
@@ -157,7 +160,7 @@
       
     <div class="article-tag">
         <i class="fa-solid fa-tag"></i>
-        <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2-malloc-libc/" rel="tag">内存管理 内存泄露 malloc libc</a>
+        <a class="p-category" href="/tags/libc/" rel="tag">libc</a>, <a class="p-category" href="/tags/malloc/" rel="tag">malloc</a>, <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" rel="tag">内存泄露</a>, <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a>
     </div>
 
 
