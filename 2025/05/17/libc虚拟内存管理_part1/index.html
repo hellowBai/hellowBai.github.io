@@ -14,7 +14,7 @@
 <meta property="og:description" content="Linux 虚拟内存与 libc 内存管理 第一章：进程虚拟内存布局1.1 虚拟地址空间分区 代码段（Text Segment）：存放程序的可执行代码，通常只读。 数据段（Data Segment）：存放已初始化的全局变量和静态变量。 BSS段（Block Started by Symbol）：存放未初始化的全局变量和静态变量，启动时初始化为0。 堆（Heap）：动态分配内存（如 malloc），">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-05-17T11:28:17.000Z">
-<meta property="article:modified_time" content="2025-05-17T17:28:59.706Z">
+<meta property="article:modified_time" content="2025-05-17T17:34:48.365Z">
 <meta property="article:author" content="Allen">
 <meta property="article:tag" content="内存管理">
 <meta property="article:tag" content="内存泄露">
@@ -256,6 +256,12 @@
 <li>非 fastbin 的 chunk 释放时会尝试与相邻空闲 chunk 合并，合并后的大 chunk 先进入 unsorted bin，再转移到合适的 bin。</li>
 <li>fastbin 的 chunk 释放时不会立即合并，直接插入 fastbin 链表。</li>
 </ol>
+<p><strong>总结：</strong></p>
+<ul>
+<li>chunk 是实际的内存块，bin 是 chunk 的分类管理链表，arena 是内存池和 bin 的集合。</li>
+<li>chunk 的分配和释放都在所属 arena 内部完成，空闲 chunk 通过 bin 管理，已分配 chunk 只在堆空间中存在。</li>
+<li>不同大小的 chunk 会被插入到不同的 bin，提升分配效率并减少碎片。</li>
+</ul>
 <h3 id="2-4-典型分配与管理流程示意"><a href="#2-4-典型分配与管理流程示意" class="headerlink" title="2.4 典型分配与管理流程示意"></a>2.4 典型分配与管理流程示意</h3><ol>
 <li>用户调用 <code>malloc(size)</code>。</li>
 <li>ptmalloc 计算 size 对应的 bin 类型。</li>
@@ -284,20 +290,10 @@
 </ul>
 <p><strong>总结：</strong></p>
 <ul>
-<li><p>主 arena 只有一个，程序启动时自动创建。</p>
-</li>
-<li><p>多线程下可动态申请多个辅助 arena，提升并发分配效率。</p>
-</li>
-<li><p>辅助 arena 优先用 brk&#x2F;sbrk 分配空间，不足时用 mmap 分配“模拟堆”。</p>
-</li>
-<li><p>mmap 分配的 arena 在完全空闲时可以整体释放。</p>
-</li>
-<li><p>chunk 是实际的内存块，bin 是 chunk 的分类管理链表，arena 是内存池和 bin 的集合。</p>
-</li>
-<li><p>chunk 的分配和释放都在所属 arena 内部完成，空闲 chunk 通过 bin 管理，已分配 chunk 只在堆空间中存在。</p>
-</li>
-<li><p>不同大小的 chunk 会被插入到不同的 bin，提升分配效率并减少碎片。</p>
-</li>
+<li>主 arena 只有一个，程序启动时自动创建。</li>
+<li>多线程下可动态申请多个辅助 arena，提升并发分配效率。</li>
+<li>辅助 arena 优先用 brk&#x2F;sbrk 分配空间，不足时用 mmap 分配“模拟堆”。</li>
+<li>mmap 分配的 arena 在完全空闲时可以整体释放。</li>
 </ul>
 <hr>
 <h2 id="第三章：堆与-arena-管理"><a href="#第三章：堆与-arena-管理" class="headerlink" title="第三章：堆与 arena 管理"></a>第三章：堆与 arena 管理</h2><h3 id="3-1-堆中-chunk-的管理过程"><a href="#3-1-堆中-chunk-的管理过程" class="headerlink" title="3.1 堆中 chunk 的管理过程"></a>3.1 堆中 chunk 的管理过程</h3><ol>
