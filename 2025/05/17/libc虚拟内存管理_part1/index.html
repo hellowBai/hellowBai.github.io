@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Linux 虚拟内存与 libc 内存管理 第一章：进程虚拟内存布局1.1 虚拟地址空间分区 代码段（Text Segment）：存放程序的可执行代码，通常只读。 数据段（Data Segment）：存放已初始化的全局变量和静态变量。 BSS段（Block Started by Symbol）：存放未初始化的全局变量和静态变量，启动时初始化为0。 堆（Heap）：动态分配内存（如 malloc），">
+<meta property="og:type" content="article">
+<meta property="og:title" content="libc虚拟内存管理_part1">
+<meta property="og:url" content="http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/index.html">
+<meta property="og:site_name" content="Patton">
+<meta property="og:description" content="Linux 虚拟内存与 libc 内存管理 第一章：进程虚拟内存布局1.1 虚拟地址空间分区 代码段（Text Segment）：存放程序的可执行代码，通常只读。 数据段（Data Segment）：存放已初始化的全局变量和静态变量。 BSS段（Block Started by Symbol）：存放未初始化的全局变量和静态变量，启动时初始化为0。 堆（Heap）：动态分配内存（如 malloc），">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-05-17T11:28:17.000Z">
+<meta property="article:modified_time" content="2025-05-17T16:53:56.124Z">
+<meta property="article:author" content="Allen">
+<meta property="article:tag" content="内存管理">
+<meta property="article:tag" content="内存泄露">
+<meta property="article:tag" content="malloc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>libc虚拟内存管理_part1</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H66MKW7BL6"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-H66MKW7BL6');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2025/05/02/libc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&text=libc虚拟内存管理_part1"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&is_video=false&description=libc虚拟内存管理_part1"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=libc虚拟内存管理_part1&body=Check out this article: http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&name=libc虚拟内存管理_part1&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&t=libc虚拟内存管理_part1"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Linux-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E4%B8%8E-libc-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">Linux 虚拟内存与 libc 内存管理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0%EF%BC%9A%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.1.</span> <span class="toc-text">第一章：进程虚拟内存布局</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%86%E5%8C%BA"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.1 虚拟地址空间分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E7%AE%80%E4%BB%8B"><span class="toc-number">1.1.2.</span> <span class="toc-text">1.2 虚拟内存映射简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%9F%A5%E8%AF%A2%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.1.3.</span> <span class="toc-text">1.3 查询进程虚拟内存布局</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9Alibc-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E-ptmalloc"><span class="toc-number">1.2.</span> <span class="toc-text">第二章：libc 内存管理与 ptmalloc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-chunk-%E6%9C%BA%E5%88%B6"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 chunk 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-1-chunk-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">2.1.1 chunk 的作用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-malloc-%E7%94%B3%E8%AF%B7-chunk-%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 malloc 申请 chunk 的流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-ptmalloc-%E7%94%B3%E8%AF%B7-chunk-%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">2.2.1 ptmalloc 申请 chunk 的方式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%9A%E5%A0%86%E4%B8%8E-arena-%E7%AE%A1%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">第三章：堆与 arena 管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%A0%86%E4%B8%AD-chunk-%E7%9A%84%E7%AE%A1%E7%90%86%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 堆中 chunk 的管理过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-bin-%E4%B8%8E-chunk-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 bin 与 chunk 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-chunk-%E7%9A%84%E9%87%8A%E6%94%BE%E4%B8%8E%E5%A4%8D%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 chunk 的释放与复用流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E7%AB%A0%EF%BC%9A%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8E-arena%E3%80%81mmap-%E7%AE%A1%E7%90%86"><span class="toc-number">1.4.</span> <span class="toc-text">第四章：多线程与 arena、mmap 管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84-arena-%E4%B8%8E-mmap"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 多线程下的 arena 与 mmap</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-mmap-%E5%88%86%E9%85%8D-arena-%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="toc-number">1.4.1.1.</span> <span class="toc-text">4.1.1 mmap 分配 arena 的流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-%E4%B8%BB%E5%A0%86%E5%8C%BA%E6%97%A0%E6%B3%95%E6%89%A9%E5%B1%95%E7%9A%84%E5%B8%B8%E8%A7%81%E5%8E%9F%E5%9B%A0"><span class="toc-number">1.4.1.2.</span> <span class="toc-text">4.1.2 主堆区无法扩展的常见原因</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E7%AB%A0%EF%BC%9Atop-chunk-%E4%B8%8E-chunk-%E5%90%88%E5%B9%B6"><span class="toc-number">1.5.</span> <span class="toc-text">第五章：top chunk 与 chunk 合并</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-top-chunk-%E6%A6%82%E5%BF%B5"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 top chunk 概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-chunk-%E5%90%88%E5%B9%B6%E5%88%B0-top-chunk-%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 chunk 合并到 top chunk 的时机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E7%AB%A0%EF%BC%9Aarena-%E6%95%B0%E9%87%8F%E4%B8%8E%E9%87%8A%E6%94%BE"><span class="toc-number">1.6.</span> <span class="toc-text">第六章：arena 数量与释放</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-arena-%E6%95%B0%E9%87%8F"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 arena 数量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-arena-%E7%9A%84%E9%87%8A%E6%94%BE"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 arena 的释放</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">附录：常见问题与总结</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        libc虚拟内存管理_part1
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Allen</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-05-17T11:28:17.000Z" class="dt-published" itemprop="datePublished">2025-05-17</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/malloc/" rel="tag">malloc</a>, <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" rel="tag">内存泄露</a>, <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="Linux-虚拟内存与-libc-内存管理"><a href="#Linux-虚拟内存与-libc-内存管理" class="headerlink" title="Linux 虚拟内存与 libc 内存管理"></a>Linux 虚拟内存与 libc 内存管理</h1><hr>
+<h2 id="第一章：进程虚拟内存布局"><a href="#第一章：进程虚拟内存布局" class="headerlink" title="第一章：进程虚拟内存布局"></a>第一章：进程虚拟内存布局</h2><h3 id="1-1-虚拟地址空间分区"><a href="#1-1-虚拟地址空间分区" class="headerlink" title="1.1 虚拟地址空间分区"></a>1.1 虚拟地址空间分区</h3><ul>
+<li><strong>代码段（Text Segment）</strong>：存放程序的可执行代码，通常只读。</li>
+<li><strong>数据段（Data Segment）</strong>：存放已初始化的全局变量和静态变量。</li>
+<li><strong>BSS段（Block Started by Symbol）</strong>：存放未初始化的全局变量和静态变量，启动时初始化为0。</li>
+<li><strong>堆（Heap）</strong>：动态分配内存（如 <code>malloc</code>），由低地址向高地址增长。</li>
+<li><strong>栈（Stack）</strong>：函数调用时保存局部变量和返回地址，由高地址向低地址增长。</li>
+<li><strong>内存映射区域（MMAP）</strong>：用于映射文件或设备，常见于动态库加载。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">高地址</span><br><span class="line">+---------------------+</span><br><span class="line">|     栈 (Stack)      |</span><br><span class="line">+---------------------+</span><br><span class="line">| 内存映射区域 (MMAP)   |</span><br><span class="line">+---------------------+</span><br><span class="line">|        堆 (Heap)    |</span><br><span class="line">+---------------------+</span><br><span class="line">|        BSS段        |</span><br><span class="line">+---------------------+</span><br><span class="line">|       数据段         |</span><br><span class="line">+---------------------+</span><br><span class="line">|       代码段         |</span><br><span class="line">+---------------------+</span><br><span class="line">低地址</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-2-虚拟内存映射简介"><a href="#1-2-虚拟内存映射简介" class="headerlink" title="1.2 虚拟内存映射简介"></a>1.2 虚拟内存映射简介</h3><ul>
+<li>虚拟内存映射（Memory Mapping）允许将文件或设备内容映射到进程虚拟地址空间，常用于动态库加载、文件I&#x2F;O优化等。Linux 通过 <code>mmap</code> 实现。</li>
+</ul>
+<h3 id="1-3-查询进程虚拟内存布局"><a href="#1-3-查询进程虚拟内存布局" class="headerlink" title="1.3 查询进程虚拟内存布局"></a>1.3 查询进程虚拟内存布局</h3><ul>
+<li><code>/proc/[pid]/maps</code>：记录进程所有虚拟内存区域及属性。</li>
+<li><code>pmap</code> 命令：友好显示进程内存映射。</li>
+<li><code>/proc/[pid]/smaps</code>：详细内存使用信息。</li>
+</ul>
+<hr>
+<h2 id="第二章：libc-内存管理与-ptmalloc"><a href="#第二章：libc-内存管理与-ptmalloc" class="headerlink" title="第二章：libc 内存管理与 ptmalloc"></a>第二章：libc 内存管理与 ptmalloc</h2><h3 id="2-1-chunk-机制"><a href="#2-1-chunk-机制" class="headerlink" title="2.1 chunk 机制"></a>2.1 chunk 机制</h3><ul>
+<li><strong>chunk</strong> 是内存分配器管理的基本单元，包含元数据和用户数据区。</li>
+<li>元数据记录 chunk 大小、状态、相邻关系等，用户只访问数据区。</li>
+</ul>
+<h4 id="2-1-1-chunk-的作用"><a href="#2-1-1-chunk-的作用" class="headerlink" title="2.1.1 chunk 的作用"></a>2.1.1 chunk 的作用</h4><ul>
+<li>支持高效分配与释放，减少碎片。</li>
+<li>支持不同大小分配请求。</li>
+<li>通过链表等结构组织空闲 chunk，便于快速分配和回收。</li>
+</ul>
+<h3 id="2-2-malloc-申请-chunk-的流程"><a href="#2-2-malloc-申请-chunk-的流程" class="headerlink" title="2.2 malloc 申请 chunk 的流程"></a>2.2 malloc 申请 chunk 的流程</h3><ul>
+<li>优先复用当前 arena 的空闲 chunk。</li>
+<li>没有合适空闲 chunk 时，向操作系统申请新内存区域，划分为 chunk。</li>
+</ul>
+<h4 id="2-2-1-ptmalloc-申请-chunk-的方式"><a href="#2-2-1-ptmalloc-申请-chunk-的方式" class="headerlink" title="2.2.1 ptmalloc 申请 chunk 的方式"></a>2.2.1 ptmalloc 申请 chunk 的方式</h4><ol>
+<li><strong>brk&#x2F;sbrk 扩展堆区（heap）</strong>  <ul>
+<li>小块分配且堆区有空间时，通过 <code>brk</code>&#x2F;<code>sbrk</code> 扩展堆区，chunk 位于堆区。</li>
+</ul>
+</li>
+<li><strong>mmap 分配内存映射区（MMAP）</strong>  <ul>
+<li>大块分配或堆区无法扩展时，通过 <code>mmap</code> 申请新虚拟内存区域，chunk 位于内存映射区。</li>
+<li>某些特殊配置、对齐需求、多线程新 arena 也可能用 mmap。</li>
+</ul>
+</li>
+</ol>
+<p><strong>总结</strong>：chunk 既可能通过 brk&#x2F;sbrk 分配在堆区，也可能通过 mmap 分配在内存映射区，实际方式取决于分配大小、堆区可用性、系统资源和多线程等因素。</p>
+<hr>
+<h2 id="第三章：堆与-arena-管理"><a href="#第三章：堆与-arena-管理" class="headerlink" title="第三章：堆与 arena 管理"></a>第三章：堆与 arena 管理</h2><h3 id="3-1-堆中-chunk-的管理过程"><a href="#3-1-堆中-chunk-的管理过程" class="headerlink" title="3.1 堆中 chunk 的管理过程"></a>3.1 堆中 chunk 的管理过程</h3><ol>
+<li><strong>分配</strong>：优先复用 bin 链表中的空闲 chunk，无则扩展堆区。</li>
+<li><strong>释放</strong>：释放 chunk 后插入对应 bin，尝试与相邻空闲 chunk 合并。</li>
+<li><strong>复用</strong>：后续分配优先复用 bin 中空闲 chunk。</li>
+<li><strong>bin 机制</strong>：fastbin、small bin、large bin、unsorted bin 分类管理不同 chunk。</li>
+<li><strong>碎片整理</strong>：自动合并相邻空闲 chunk，减少碎片。</li>
+</ol>
+<h3 id="3-2-bin-与-chunk-的关系"><a href="#3-2-bin-与-chunk-的关系" class="headerlink" title="3.2 bin 与 chunk 的关系"></a>3.2 bin 与 chunk 的关系</h3><ul>
+<li><strong>chunk</strong>：实际内存块，分配&#x2F;释放的基本单元。</li>
+<li><strong>bin</strong>：分类链表，管理不同大小和用途的空闲 chunk。<ul>
+<li>fastbin：小块，释放快但不立即合并。</li>
+<li>small&#x2F;large bin：更大 chunk，支持合并。</li>
+<li>unsorted bin：刚释放的 chunk 临时存放。</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-3-chunk-的释放与复用流程"><a href="#3-3-chunk-的释放与复用流程" class="headerlink" title="3.3 chunk 的释放与复用流程"></a>3.3 chunk 的释放与复用流程</h3><ol>
+<li>定位 chunk。</li>
+<li>检查状态，防止 double free。</li>
+<li>插入合适 bin。</li>
+<li>合并相邻空闲 chunk（非 fastbin）。</li>
+<li>等待复用。</li>
+</ol>
+<p><strong>注意</strong>：fastbin 不立即合并，small&#x2F;large bin 会合并。</p>
+<hr>
+<h2 id="第四章：多线程与-arena、mmap-管理"><a href="#第四章：多线程与-arena、mmap-管理" class="headerlink" title="第四章：多线程与 arena、mmap 管理"></a>第四章：多线程与 arena、mmap 管理</h2><h3 id="4-1-多线程下的-arena-与-mmap"><a href="#4-1-多线程下的-arena-与-mmap" class="headerlink" title="4.1 多线程下的 arena 与 mmap"></a>4.1 多线程下的 arena 与 mmap</h3><ul>
+<li>多线程下，ptmalloc 为减少锁竞争，会为不同线程分配多个独立 arena。</li>
+<li>每个 arena 需要自己的堆空间，主堆区不足时通过 mmap 分配“模拟堆”。</li>
+<li>mmap 分配的伪堆数量取决于 arena 数量（通常与并发线程数相关）。</li>
+</ul>
+<h4 id="4-1-1-mmap-分配-arena-的流程"><a href="#4-1-1-mmap-分配-arena-的流程" class="headerlink" title="4.1.1 mmap 分配 arena 的流程"></a>4.1.1 mmap 分配 arena 的流程</h4><ol>
+<li>检测主堆区可用性，优先用 brk&#x2F;sbrk。</li>
+<li>主堆区无法扩展时，调用 mmap 分配独立堆空间。</li>
+<li>在 mmap 区域内划分 chunk，管理方式与主堆一致。</li>
+<li>只有整个 arena 不再被使用时，才整体 munmap 归还操作系统。</li>
+</ol>
+<h4 id="4-1-2-主堆区无法扩展的常见原因"><a href="#4-1-2-主堆区无法扩展的常见原因" class="headerlink" title="4.1.2 主堆区无法扩展的常见原因"></a>4.1.2 主堆区无法扩展的常见原因</h4><ul>
+<li>地址空间碎片（堆区后被其他映射占用）。</li>
+<li>资源限制（ulimit、物理&#x2F;虚拟内存耗尽）。</li>
+<li>堆区已达最大限制。</li>
+<li>多线程下主 arena 长时间被锁定，分配器为提升效率选择 mmap。</li>
+</ul>
+<hr>
+<h2 id="第五章：top-chunk-与-chunk-合并"><a href="#第五章：top-chunk-与-chunk-合并" class="headerlink" title="第五章：top chunk 与 chunk 合并"></a>第五章：top chunk 与 chunk 合并</h2><h3 id="5-1-top-chunk-概念"><a href="#5-1-top-chunk-概念" class="headerlink" title="5.1 top chunk 概念"></a>5.1 top chunk 概念</h3><ul>
+<li>top chunk 是堆区（或 arena 堆区）最高地址处尚未分配的最大空闲块。</li>
+<li>分配时优先从 top chunk 切分空间，不足时扩展堆区。</li>
+<li>每个 arena（主堆或 mmap 伪堆）都有自己的 top chunk。</li>
+</ul>
+<h3 id="5-2-chunk-合并到-top-chunk-的时机"><a href="#5-2-chunk-合并到-top-chunk-的时机" class="headerlink" title="5.2 chunk 合并到 top chunk 的时机"></a>5.2 chunk 合并到 top chunk 的时机</h3><ul>
+<li>当释放的 chunk 与 top chunk 相邻时，ptmalloc 会将其合并进 top chunk，形成更大的连续空闲块，便于后续分配和堆空间收缩。</li>
+</ul>
+<hr>
+<h2 id="第六章：arena-数量与释放"><a href="#第六章：arena-数量与释放" class="headerlink" title="第六章：arena 数量与释放"></a>第六章：arena 数量与释放</h2><h3 id="6-1-arena-数量"><a href="#6-1-arena-数量" class="headerlink" title="6.1 arena 数量"></a>6.1 arena 数量</h3><ul>
+<li>主 arena 只有一个，辅 arena 数量与并发线程数相关（通常为 2 × CPU 核心数，可通过 MALLOC_ARENA_MAX 控制）。</li>
+<li>每个 arena 都有独立堆空间和 top chunk。</li>
+</ul>
+<h3 id="6-2-arena-的释放"><a href="#6-2-arena-的释放" class="headerlink" title="6.2 arena 的释放"></a>6.2 arena 的释放</h3><ul>
+<li>主 arena（brk&#x2F;sbrk）只能收缩堆顶连续空间，通常不会整体释放，除非进程退出。</li>
+<li>mmap 分配的辅 arena，只有整个 arena 空闲且无线程使用时，才会整体 munmap 归还操作系统。</li>
+</ul>
+<hr>
+<h2 id="附录：常见问题与总结"><a href="#附录：常见问题与总结" class="headerlink" title="附录：常见问题与总结"></a>附录：常见问题与总结</h2><ul>
+<li><strong>bin 结构和 chunk 地址是否连续？</strong><br>否，bin 是链表头或指针集合，chunk 分布在堆空间各处。</li>
+<li><strong>主 arena 大小是否固定？</strong><br>否，可动态扩展或收缩，受堆区高地址空间影响。</li>
+<li><strong>每个 arena 有几个 top chunk？</strong><br>每个 arena 一个 top chunk，arena 数量即 top chunk 数量。</li>
+<li><strong>chunk 释放后会立即归还操作系统吗？</strong><br>只有 mmap 分配的大块 chunk 或整个 mmap arena 空闲时才会 munmap，普通堆区 chunk 只是进入 bin 等待复用。</li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+    <div class="blog-post-comments">
+        <div id="utterances_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Linux-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E4%B8%8E-libc-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">Linux 虚拟内存与 libc 内存管理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0%EF%BC%9A%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.1.</span> <span class="toc-text">第一章：进程虚拟内存布局</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%86%E5%8C%BA"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.1 虚拟地址空间分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E7%AE%80%E4%BB%8B"><span class="toc-number">1.1.2.</span> <span class="toc-text">1.2 虚拟内存映射简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%9F%A5%E8%AF%A2%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.1.3.</span> <span class="toc-text">1.3 查询进程虚拟内存布局</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9Alibc-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E-ptmalloc"><span class="toc-number">1.2.</span> <span class="toc-text">第二章：libc 内存管理与 ptmalloc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-chunk-%E6%9C%BA%E5%88%B6"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 chunk 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-1-chunk-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">2.1.1 chunk 的作用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-malloc-%E7%94%B3%E8%AF%B7-chunk-%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 malloc 申请 chunk 的流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-ptmalloc-%E7%94%B3%E8%AF%B7-chunk-%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">2.2.1 ptmalloc 申请 chunk 的方式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%9A%E5%A0%86%E4%B8%8E-arena-%E7%AE%A1%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">第三章：堆与 arena 管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%A0%86%E4%B8%AD-chunk-%E7%9A%84%E7%AE%A1%E7%90%86%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 堆中 chunk 的管理过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-bin-%E4%B8%8E-chunk-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 bin 与 chunk 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-chunk-%E7%9A%84%E9%87%8A%E6%94%BE%E4%B8%8E%E5%A4%8D%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 chunk 的释放与复用流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E7%AB%A0%EF%BC%9A%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8E-arena%E3%80%81mmap-%E7%AE%A1%E7%90%86"><span class="toc-number">1.4.</span> <span class="toc-text">第四章：多线程与 arena、mmap 管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84-arena-%E4%B8%8E-mmap"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 多线程下的 arena 与 mmap</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-mmap-%E5%88%86%E9%85%8D-arena-%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="toc-number">1.4.1.1.</span> <span class="toc-text">4.1.1 mmap 分配 arena 的流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-%E4%B8%BB%E5%A0%86%E5%8C%BA%E6%97%A0%E6%B3%95%E6%89%A9%E5%B1%95%E7%9A%84%E5%B8%B8%E8%A7%81%E5%8E%9F%E5%9B%A0"><span class="toc-number">1.4.1.2.</span> <span class="toc-text">4.1.2 主堆区无法扩展的常见原因</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E7%AB%A0%EF%BC%9Atop-chunk-%E4%B8%8E-chunk-%E5%90%88%E5%B9%B6"><span class="toc-number">1.5.</span> <span class="toc-text">第五章：top chunk 与 chunk 合并</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-top-chunk-%E6%A6%82%E5%BF%B5"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 top chunk 概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-chunk-%E5%90%88%E5%B9%B6%E5%88%B0-top-chunk-%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 chunk 合并到 top chunk 的时机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E7%AB%A0%EF%BC%9Aarena-%E6%95%B0%E9%87%8F%E4%B8%8E%E9%87%8A%E6%94%BE"><span class="toc-number">1.6.</span> <span class="toc-text">第六章：arena 数量与释放</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-arena-%E6%95%B0%E9%87%8F"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 arena 数量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-arena-%E7%9A%84%E9%87%8A%E6%94%BE"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 arena 的释放</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">附录：常见问题与总结</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&text=libc虚拟内存管理_part1"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&is_video=false&description=libc虚拟内存管理_part1"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=libc虚拟内存管理_part1&body=Check out this article: http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&title=libc虚拟内存管理_part1"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&name=libc虚拟内存管理_part1&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/&t=libc虚拟内存管理_part1"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Allen
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+    <script type="text/javascript">
+      var utterances_repo = 'hellowBai/comments_server';
+      var utterances_issue_term = 'comments_path';
+      var utterances_label = 'Comment';
+      var utterances_theme = 'github-light';
+
+      (function(){
+          var script = document.createElement('script');
+
+          script.src = 'https://utteranc.es/client.js';
+          script.setAttribute('repo', utterances_repo);
+          script.setAttribute('issue-term', 'pathname');
+          script.setAttribute('label', utterances_label);
+          script.setAttribute('theme', utterances_theme);
+          script.setAttribute('crossorigin', 'anonymous');
+          script.async = true;
+          (document.getElementById('utterances_thread')).appendChild(script);
+      }());
+  </script>
+
+</body>
+</html>
