@@ -4,4 +4,4 @@ Disallow: /nogooglebot/
 User-agent: *
 Allow: /
 
-Sitemap: https://hellowbai.github.io/sitemap.txt
+Sitemap: https://hellowbai.github.io/sitemap.xml
