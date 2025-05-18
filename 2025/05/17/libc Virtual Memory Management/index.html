@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Chapter 1: Process Virtual Memory Layout1.1 Virtual Address Space Partitioning Text Segment: Stores the program’s executable code, usually read-only. Data Segment: Stores initialized global and stati">
+<meta property="og:type" content="article">
+<meta property="og:title" content="libc Virtual Memory Management">
+<meta property="og:url" content="http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/index.html">
+<meta property="og:site_name" content="Patton">
+<meta property="og:description" content="Chapter 1: Process Virtual Memory Layout1.1 Virtual Address Space Partitioning Text Segment: Stores the program’s executable code, usually read-only. Data Segment: Stores initialized global and stati">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-05-17T11:28:17.000Z">
+<meta property="article:modified_time" content="2025-05-18T03:07:41.931Z">
+<meta property="article:author" content="Allen">
+<meta property="article:tag" content="malloc">
+<meta property="article:tag" content="memory management">
+<meta property="article:tag" content="memory leak">
+<meta property="article:tag" content="virtual memory">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>libc Virtual Memory Management</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H66MKW7BL6"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-H66MKW7BL6');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2025/05/02/libc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&text=libc Virtual Memory Management"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&is_video=false&description=libc Virtual Memory Management"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=libc Virtual Memory Management&body=Check out this article: http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&name=libc Virtual Memory Management&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&t=libc Virtual Memory Management"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-1-Process-Virtual-Memory-Layout"><span class="toc-number">1.</span> <span class="toc-text">Chapter 1: Process Virtual Memory Layout</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-Virtual-Address-Space-Partitioning"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 Virtual Address Space Partitioning</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-Introduction-to-Virtual-Memory-Mapping"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 Introduction to Virtual Memory Mapping</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-Querying-Process-Virtual-Memory-Layout"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 Querying Process Virtual Memory Layout</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-2-libc-Memory-Management-and-ptmalloc"><span class="toc-number">2.</span> <span class="toc-text">Chapter 2: libc Memory Management and ptmalloc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Detailed-Structure-of-chunk"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 Detailed Structure of chunk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Relationship-between-chunk-bin-and-arena"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Relationship between chunk, bin, and arena</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Mapping-chunk-Allocation-to-Bins"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 Mapping chunk Allocation to Bins</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-Typical-Allocation-and-Management-Flow"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 Typical Allocation and Management Flow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-Arena-Allocation-and-Management"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 Arena Allocation and Management</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-1-Creation-of-the-Main-Arena"><span class="toc-number">2.5.1.</span> <span class="toc-text">2.5.1 Creation of the Main Arena</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-2-Allocation-of-Auxiliary-Arenas"><span class="toc-number">2.5.2.</span> <span class="toc-text">2.5.2 Allocation of Auxiliary Arenas</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-3-Memory-Source-for-Auxiliary-Arenas"><span class="toc-number">2.5.3.</span> <span class="toc-text">2.5.3 Memory Source for Auxiliary Arenas</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-4-Arena-Release"><span class="toc-number">2.5.4.</span> <span class="toc-text">2.5.4 Arena Release</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-3-Heap-and-Arena-Management"><span class="toc-number">3.</span> <span class="toc-text">Chapter 3: Heap and Arena Management</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Lifecycle-and-Management-Flow-of-Heap-Chunks"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Lifecycle and Management Flow of Heap Chunks</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-1-Allocation-Flow"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1.1 Allocation Flow</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-2-Release-Flow"><span class="toc-number">3.1.2.</span> <span class="toc-text">3.1.2 Release Flow</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-3-Reuse-Flow"><span class="toc-number">3.1.3.</span> <span class="toc-text">3.1.3 Reuse Flow</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Bin-Mechanism-and-Classification"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Bin Mechanism and Classification</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-1-fastbin"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.2.1 fastbin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-2-small-bin"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2.2 small bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-3-large-bin"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.2.3 large bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-4-unsorted-bin"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.2.4 unsorted bin</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Chunk-Coalescing-and-Fragmentation-Management"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Chunk Coalescing and Fragmentation Management</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-1-Coalescing-Mechanism"><span class="toc-number">3.3.1.</span> <span class="toc-text">3.3.1 Coalescing Mechanism</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-2-Coalescing-to-the-Top-Chunk"><span class="toc-number">3.3.2.</span> <span class="toc-text">3.3.2 Coalescing to the Top Chunk</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Relationship-between-bin-and-chunk"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Relationship between bin and chunk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-Typical-Management-Flow-Diagram"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 Typical Management Flow Diagram</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Chunk-Release-and-Reuse-Flow"><span class="toc-number">3.6.</span> <span class="toc-text">3.3 Chunk Release and Reuse Flow</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-4-Arena-Introduction-Allocation-and-Release"><span class="toc-number">4.</span> <span class="toc-text">Chapter 4: Arena Introduction, Allocation, and Release</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-What-is-an-arena"><span class="toc-number">4.1.</span> <span class="toc-text">6.1 What is an arena?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Number-of-arenas"><span class="toc-number">4.2.</span> <span class="toc-text">6.2 Number of arenas</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Arena-Allocation-and-Release"><span class="toc-number">4.3.</span> <span class="toc-text">6.3 Arena Allocation and Release</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-Typical-Management-Flow-Diagram"><span class="toc-number">4.4.</span> <span class="toc-text">6.4 Typical Management Flow Diagram</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-5-Multithreading-Arena-and-mmap-Management"><span class="toc-number">5.</span> <span class="toc-text">Chapter 5: Multithreading, Arena, and mmap Management</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Arena-Mechanism-in-Multithreading"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 Arena Mechanism in Multithreading</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-Arena-Allocation-and-Selection-Flow"><span class="toc-number">5.1.1.</span> <span class="toc-text">4.1.1 Arena Allocation and Selection Flow</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Detailed-Flow-of-mmap-allocated-Arenas"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 Detailed Flow of mmap-allocated Arenas</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-Steps-for-mmap-allocated-Arenas"><span class="toc-number">5.2.1.</span> <span class="toc-text">4.2.1 Steps for mmap-allocated Arenas</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Allocation-and-Release-Characteristics-in-Multithreading"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 Allocation and Release Characteristics in Multithreading</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Multithreaded-Memory-Allocation-Flow-Diagram"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 Multithreaded Memory Allocation Flow Diagram</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-Typical-Issues-and-Notes"><span class="toc-number">5.5.</span> <span class="toc-text">4.5 Typical Issues and Notes</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-6-top-chunk-and-Chunk-Coalescing"><span class="toc-number">6.</span> <span class="toc-text">Chapter 6: top chunk and Chunk Coalescing</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Concept-of-top-chunk"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 Concept of top chunk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-When-and-How-Chunks-are-Coalesced-into-the-top-chunk"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 When and How Chunks are Coalesced into the top chunk</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Flowchart-for-Coalescing-into-the-top-chunk"><span class="toc-number">6.2.1.</span> <span class="toc-text">Flowchart for Coalescing into the top chunk</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Releasing-the-top-chunk"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 Releasing the top chunk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Typical-Scenarios"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 Typical Scenarios</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Appendix-Frequently-Asked-Questions-and-Summary"><span class="toc-number">7.</span> <span class="toc-text">Appendix: Frequently Asked Questions and Summary</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        libc Virtual Memory Management
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Allen</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-05-17T11:28:17.000Z" class="dt-published" itemprop="datePublished">2025-05-17</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/malloc/" rel="tag">malloc</a>, <a class="p-category" href="/tags/memory-leak/" rel="tag">memory leak</a>, <a class="p-category" href="/tags/memory-management/" rel="tag">memory management</a>, <a class="p-category" href="/tags/virtual-memory/" rel="tag">virtual memory</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <hr>
+<h2 id="Chapter-1-Process-Virtual-Memory-Layout"><a href="#Chapter-1-Process-Virtual-Memory-Layout" class="headerlink" title="Chapter 1: Process Virtual Memory Layout"></a>Chapter 1: Process Virtual Memory Layout</h2><h3 id="1-1-Virtual-Address-Space-Partitioning"><a href="#1-1-Virtual-Address-Space-Partitioning" class="headerlink" title="1.1 Virtual Address Space Partitioning"></a>1.1 Virtual Address Space Partitioning</h3><ul>
+<li><strong>Text Segment</strong>: Stores the program’s executable code, usually read-only.</li>
+<li><strong>Data Segment</strong>: Stores initialized global and static variables.</li>
+<li><strong>BSS Segment</strong>: Stores uninitialized global and static variables, initialized to 0 at startup.</li>
+<li><strong>Heap</strong>: Used for dynamic memory allocation (e.g., <code>malloc</code>), grows from low to high addresses.</li>
+<li><strong>Stack</strong>: Stores local variables and return addresses during function calls, grows from high to low addresses.</li>
+<li><strong>Memory Mapping Area (MMAP)</strong>: Used for mapping files or devices, commonly for dynamic library loading.</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">High Address</span><br><span class="line">+---------------------+</span><br><span class="line">|     Stack           |</span><br><span class="line">+---------------------+</span><br><span class="line">| Memory Mapping Area |</span><br><span class="line">+---------------------+</span><br><span class="line">|        Heap         |</span><br><span class="line">+---------------------+</span><br><span class="line">|        BSS          |</span><br><span class="line">+---------------------+</span><br><span class="line">|       Data          |</span><br><span class="line">+---------------------+</span><br><span class="line">|       Text          |</span><br><span class="line">+---------------------+</span><br><span class="line">Low Address</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-2-Introduction-to-Virtual-Memory-Mapping"><a href="#1-2-Introduction-to-Virtual-Memory-Mapping" class="headerlink" title="1.2 Introduction to Virtual Memory Mapping"></a>1.2 Introduction to Virtual Memory Mapping</h3><ul>
+<li>Virtual memory mapping allows files or device contents to be mapped into a process’s virtual address space, commonly used for dynamic library loading and file I&#x2F;O optimization. Linux implements this via <code>mmap</code>.</li>
+</ul>
+<h3 id="1-3-Querying-Process-Virtual-Memory-Layout"><a href="#1-3-Querying-Process-Virtual-Memory-Layout" class="headerlink" title="1.3 Querying Process Virtual Memory Layout"></a>1.3 Querying Process Virtual Memory Layout</h3><ul>
+<li><code>/proc/[pid]/maps</code>: Records all virtual memory regions and their attributes for a process.</li>
+<li><code>pmap</code> command: Displays process memory mapping in a user-friendly way.</li>
+<li><code>/proc/[pid]/smaps</code>: Provides detailed memory usage information.</li>
+</ul>
+<hr>
+<h2 id="Chapter-2-libc-Memory-Management-and-ptmalloc"><a href="#Chapter-2-libc-Memory-Management-and-ptmalloc" class="headerlink" title="Chapter 2: libc Memory Management and ptmalloc"></a>Chapter 2: libc Memory Management and ptmalloc</h2><h3 id="2-1-Detailed-Structure-of-chunk"><a href="#2-1-Detailed-Structure-of-chunk" class="headerlink" title="2.1 Detailed Structure of chunk"></a>2.1 Detailed Structure of chunk</h3><p>In ptmalloc (glibc’s default malloc implementation), a <strong>chunk</strong> is the basic unit for memory allocation and management. Each chunk consists of two parts:</p>
+<ul>
+<li><strong>Metadata</strong>: Stored at the head of the chunk, includes:<ul>
+<li>The size of the chunk</li>
+<li>Whether the chunk is allocated (in-use flag)</li>
+<li>Whether the previous chunk is free (prev_inuse flag)</li>
+<li>Pointers to the previous and next chunk (used only for free chunks in linked list management)</li>
+</ul>
+</li>
+<li><strong>User Data Area</strong>: The actual memory space returned to the user.</li>
+</ul>
+<p>A chunk’s structure (pseudo-code):</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span> &#123;</span></span><br><span class="line">    <span class="type">size_t</span>      prev_size;  <span class="comment">// Size of the previous chunk (valid only if the previous chunk is free)</span></span><br><span class="line">    <span class="type">size_t</span>      size;       <span class="comment">// Size and status flags of the current chunk</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd</span>;</span> <span class="comment">// Pointer to the next free chunk (valid only for free chunks)</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk</span>;</span> <span class="comment">// Pointer to the previous free chunk (valid only for free chunks)</span></span><br><span class="line">    <span class="comment">// ...user data area...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-Relationship-between-chunk-bin-and-arena"><a href="#2-2-Relationship-between-chunk-bin-and-arena" class="headerlink" title="2.2 Relationship between chunk, bin, and arena"></a>2.2 Relationship between chunk, bin, and arena</h3><ul>
+<li><strong>arena</strong>: The memory pool structure in ptmalloc. Each arena manages an independent heap space (can be the main heap or a pseudo-heap allocated by mmap), and maintains its own bin list and chunk management.</li>
+<li><strong>bin</strong>: A set of linked lists used to categorize and manage free chunks of different sizes and purposes. Each arena has its own set of bins, independent from others.</li>
+<li><strong>chunk</strong>: The actual memory block, the basic unit for allocation and release. Free chunks are inserted into a bin list in their arena; allocated chunks only exist in the heap, not in any bin list.</li>
+</ul>
+<p><strong>Summary of relationships:</strong></p>
+<ul>
+<li>An arena manages a heap space and a set of bins.</li>
+<li>A bin manages a class (specific size or purpose) of free chunks.</li>
+<li>Chunks are organized and managed via bin lists; allocation and release are all done within the owning arena.</li>
+</ul>
+<h3 id="2-3-Mapping-chunk-Allocation-to-Bins"><a href="#2-3-Mapping-chunk-Allocation-to-Bins" class="headerlink" title="2.3 Mapping chunk Allocation to Bins"></a>2.3 Mapping chunk Allocation to Bins</h3><p>When a user calls <code>malloc(size)</code>, ptmalloc selects the appropriate bin type based on the size:</p>
+<ul>
+<li><p><strong>fastbin</strong>:  </p>
+<ul>
+<li>Manages very small chunks (e.g., less than 64 bytes, actual threshold depends on implementation).</li>
+<li>Extremely fast allocation and release, but does not immediately coalesce adjacent free chunks, which may cause fragmentation.</li>
+<li>Suitable for frequent allocation and release of small objects.</li>
+</ul>
+</li>
+<li><p><strong>small bin</strong>:  </p>
+<ul>
+<li>Manages small but larger than fastbin chunks (e.g., 64 to 512 bytes).</li>
+<li>Supports coalescing adjacent free chunks to reduce fragmentation.</li>
+<li>Suitable for general small object allocation.</li>
+</ul>
+</li>
+<li><p><strong>large bin</strong>:  </p>
+<ul>
+<li>Manages larger chunks (greater than the upper limit of small bin).</li>
+<li>Uses different search and coalescing strategies, suitable for large object allocation.</li>
+</ul>
+</li>
+<li><p><strong>unsorted bin</strong>:  </p>
+<ul>
+<li>Newly freed or coalesced chunks first enter the unsorted bin, and are later moved to small or large bins based on size.</li>
+<li>Acts as a temporary buffer to improve allocation and recycling efficiency.</li>
+</ul>
+</li>
+</ul>
+<p><strong>chunk allocation process:</strong></p>
+<ol>
+<li>ptmalloc first searches for a suitable free chunk in the corresponding bin (fastbin, small bin, large bin).</li>
+<li>If found, it is allocated to the user.</li>
+<li>If not found, ptmalloc tries to split the top chunk or requests new memory from the OS (via brk&#x2F;sbrk or mmap).</li>
+</ol>
+<p><strong>chunk release process:</strong></p>
+<ol>
+<li>The released chunk is inserted into the appropriate bin based on its size and status.</li>
+<li>Non-fastbin chunks will attempt to coalesce with adjacent free chunks; the resulting large chunk first enters the unsorted bin, then moves to the appropriate bin.</li>
+<li>Fastbin chunks are not immediately coalesced, just inserted into the fastbin list.</li>
+</ol>
+<p><strong>Summary:</strong></p>
+<ul>
+<li>chunk is the actual memory block, bin is the categorized management list for chunks, and arena is the collection of memory pool and bins.</li>
+<li>Allocation and release of chunks are all done within the owning arena; free chunks are managed via bins, allocated chunks only exist in the heap.</li>
+<li>Chunks of different sizes are inserted into different bins to improve allocation efficiency and reduce fragmentation.</li>
+</ul>
+<h3 id="2-4-Typical-Allocation-and-Management-Flow"><a href="#2-4-Typical-Allocation-and-Management-Flow" class="headerlink" title="2.4 Typical Allocation and Management Flow"></a>2.4 Typical Allocation and Management Flow</h3><ol>
+<li>User calls <code>malloc(size)</code>.</li>
+<li>ptmalloc calculates the bin type for the size.</li>
+<li>Searches for a free chunk in the corresponding bin list of the owning arena.</li>
+<li>If found, allocates it; if not, splits the top chunk or requests new memory.</li>
+<li>User calls <code>free(ptr)</code> to release a chunk.</li>
+<li>The chunk is inserted into the owning bin, coalescing with adjacent free chunks if necessary.</li>
+</ol>
+<h3 id="2-5-Arena-Allocation-and-Management"><a href="#2-5-Arena-Allocation-and-Management" class="headerlink" title="2.5 Arena Allocation and Management"></a>2.5 Arena Allocation and Management</h3><p>In ptmalloc, <strong>arena</strong> is the core structure for memory allocation, mainly to support efficient allocation in multithreaded environments. The allocation and management flow for arenas is as follows:</p>
+<h4 id="2-5-1-Creation-of-the-Main-Arena"><a href="#2-5-1-Creation-of-the-Main-Arena" class="headerlink" title="2.5.1 Creation of the Main Arena"></a>2.5.1 Creation of the Main Arena</h4><ul>
+<li>At program startup, ptmalloc automatically creates a main arena and binds it to the main heap.</li>
+<li>The main arena manages the process’s main heap space; all single-threaded allocation requests are handled by the main arena.</li>
+</ul>
+<h4 id="2-5-2-Allocation-of-Auxiliary-Arenas"><a href="#2-5-2-Allocation-of-Auxiliary-Arenas" class="headerlink" title="2.5.2 Allocation of Auxiliary Arenas"></a>2.5.2 Allocation of Auxiliary Arenas</h4><ul>
+<li>In multithreaded environments, to reduce lock contention, ptmalloc allocates independent auxiliary arenas for new threads.</li>
+<li>The number of auxiliary arenas is usually related to the number of CPU cores (e.g., 2 × CPU cores), and can be controlled by the environment variable <code>MALLOC_ARENA_MAX</code>.</li>
+<li>When a thread needs to allocate memory and the main arena is locked, ptmalloc tries to allocate a new auxiliary arena.</li>
+</ul>
+<h4 id="2-5-3-Memory-Source-for-Auxiliary-Arenas"><a href="#2-5-3-Memory-Source-for-Auxiliary-Arenas" class="headerlink" title="2.5.3 Memory Source for Auxiliary Arenas"></a>2.5.3 Memory Source for Auxiliary Arenas</h4><ul>
+<li><strong>Prefer brk&#x2F;sbrk</strong>: If there is enough contiguous space at the high end of the main heap, ptmalloc uses brk&#x2F;sbrk to “carve out” a space for the new arena.</li>
+<li><strong>Fallback to mmap</strong>: If the main heap cannot be expanded (e.g., occupied by other mappings or insufficient space), ptmalloc uses mmap to allocate a new “pseudo-heap” in another area of virtual memory for the auxiliary arena.</li>
+</ul>
+<h4 id="2-5-4-Arena-Release"><a href="#2-5-4-Arena-Release" class="headerlink" title="2.5.4 Arena Release"></a>2.5.4 Arena Release</h4><ul>
+<li>The main arena’s space is usually not released as a whole, unless the process exits.</li>
+<li>An auxiliary arena allocated by mmap will be released via munmap when all its chunks are free and no thread is using it.</li>
+</ul>
+<p><strong>Summary:</strong></p>
+<ul>
+<li>There is only one main arena, created automatically at program startup.</li>
+<li>In multithreaded environments, multiple auxiliary arenas can be dynamically allocated to improve concurrent allocation efficiency.</li>
+<li>Auxiliary arenas prefer brk&#x2F;sbrk for space allocation, falling back to mmap for “pseudo-heap” if needed.</li>
+<li>mmap-allocated arenas can be released as a whole when completely free.</li>
+</ul>
+<hr>
+<h2 id="Chapter-3-Heap-and-Arena-Management"><a href="#Chapter-3-Heap-and-Arena-Management" class="headerlink" title="Chapter 3: Heap and Arena Management"></a>Chapter 3: Heap and Arena Management</h2><h3 id="3-1-Lifecycle-and-Management-Flow-of-Heap-Chunks"><a href="#3-1-Lifecycle-and-Management-Flow-of-Heap-Chunks" class="headerlink" title="3.1 Lifecycle and Management Flow of Heap Chunks"></a>3.1 Lifecycle and Management Flow of Heap Chunks</h3><h4 id="3-1-1-Allocation-Flow"><a href="#3-1-1-Allocation-Flow" class="headerlink" title="3.1.1 Allocation Flow"></a>3.1.1 Allocation Flow</h4><ol>
+<li><strong>Allocation Request</strong>  <ul>
+<li>User calls <code>malloc(size)</code>, ptmalloc calculates the size and selects the appropriate bin type.</li>
+</ul>
+</li>
+<li><strong>Search for Free Chunk</strong>  <ul>
+<li>First searches for a suitable free chunk in the corresponding bin (fastbin, small bin, large bin) list of the owning arena.</li>
+<li>If found, allocates it to the user.</li>
+</ul>
+</li>
+<li><strong>Split Top Chunk or Expand Heap</strong>  <ul>
+<li>If no suitable chunk is found in the bin, tries to split the top chunk.</li>
+<li>If the top chunk is insufficient, requests more memory from the OS via <code>brk</code>&#x2F;<code>sbrk</code> or <code>mmap</code>, expands the top chunk, and then splits for allocation.</li>
+</ul>
+</li>
+</ol>
+<h4 id="3-1-2-Release-Flow"><a href="#3-1-2-Release-Flow" class="headerlink" title="3.1.2 Release Flow"></a>3.1.2 Release Flow</h4><ol>
+<li><strong>Release Chunk</strong>  <ul>
+<li>User calls <code>free(ptr)</code>, ptmalloc locates the corresponding chunk.</li>
+</ul>
+</li>
+<li><strong>Coalesce Adjacent Free Chunks</strong>  <ul>
+<li>For non-fastbin chunks, ptmalloc checks if adjacent chunks are free; if so, immediately coalesces them into a larger free block.</li>
+<li>The coalesced chunk first enters the unsorted bin, then moves to the small or large bin.</li>
+<li>Fastbin chunks are not immediately coalesced, just inserted into the fastbin list.</li>
+</ul>
+</li>
+<li><strong>Insert into Bin</strong>  <ul>
+<li>The coalesced or uncoalesced free chunk is inserted into the appropriate bin list of the owning arena, waiting for reuse.</li>
+</ul>
+</li>
+</ol>
+<h4 id="3-1-3-Reuse-Flow"><a href="#3-1-3-Reuse-Flow" class="headerlink" title="3.1.3 Reuse Flow"></a>3.1.3 Reuse Flow</h4><ul>
+<li>Subsequent <code>malloc</code> requests will preferentially reuse free chunks in the bin list, improving allocation efficiency and reducing system calls and memory fragmentation.</li>
+</ul>
+<hr>
+<h3 id="3-2-Bin-Mechanism-and-Classification"><a href="#3-2-Bin-Mechanism-and-Classification" class="headerlink" title="3.2 Bin Mechanism and Classification"></a>3.2 Bin Mechanism and Classification</h3><h4 id="3-2-1-fastbin"><a href="#3-2-1-fastbin" class="headerlink" title="3.2.1 fastbin"></a>3.2.1 fastbin</h4><ul>
+<li>Manages very small chunks (e.g., less than 64 bytes).</li>
+<li>Extremely fast allocation and release, but does not immediately coalesce adjacent free chunks, which may cause fragmentation.</li>
+<li>Suitable for frequent allocation and release of small objects.</li>
+</ul>
+<h4 id="3-2-2-small-bin"><a href="#3-2-2-small-bin" class="headerlink" title="3.2.2 small bin"></a>3.2.2 small bin</h4><ul>
+<li>Manages small but larger than fastbin chunks (e.g., 64 to 512 bytes).</li>
+<li>Supports coalescing adjacent free chunks to reduce fragmentation.</li>
+<li>Suitable for general small object allocation.</li>
+</ul>
+<h4 id="3-2-3-large-bin"><a href="#3-2-3-large-bin" class="headerlink" title="3.2.3 large bin"></a>3.2.3 large bin</h4><ul>
+<li>Manages larger chunks (greater than the upper limit of small bin).</li>
+<li>Uses different search and coalescing strategies, suitable for large object allocation.</li>
+</ul>
+<h4 id="3-2-4-unsorted-bin"><a href="#3-2-4-unsorted-bin" class="headerlink" title="3.2.4 unsorted bin"></a>3.2.4 unsorted bin</h4><ul>
+<li>Newly freed or coalesced chunks first enter the unsorted bin as a temporary buffer.</li>
+<li>Later, chunks are moved to small or large bins during allocation or organization.</li>
+<li>Improves allocation and recycling efficiency.</li>
+</ul>
+<hr>
+<h3 id="3-3-Chunk-Coalescing-and-Fragmentation-Management"><a href="#3-3-Chunk-Coalescing-and-Fragmentation-Management" class="headerlink" title="3.3 Chunk Coalescing and Fragmentation Management"></a>3.3 Chunk Coalescing and Fragmentation Management</h3><h4 id="3-3-1-Coalescing-Mechanism"><a href="#3-3-1-Coalescing-Mechanism" class="headerlink" title="3.3.1 Coalescing Mechanism"></a>3.3.1 Coalescing Mechanism</h4><ul>
+<li>When a chunk is freed, ptmalloc checks if adjacent chunks are free.</li>
+<li>If so, immediately coalesces them into a larger free block, reducing memory fragmentation.</li>
+<li>The coalesced chunk enters the unsorted bin, waiting for subsequent allocation or organization.</li>
+</ul>
+<h4 id="3-3-2-Coalescing-to-the-Top-Chunk"><a href="#3-3-2-Coalescing-to-the-Top-Chunk" class="headerlink" title="3.3.2 Coalescing to the Top Chunk"></a>3.3.2 Coalescing to the Top Chunk</h4><ul>
+<li>If the freed chunk is adjacent to the top chunk, ptmalloc merges it into the top chunk, expanding the unallocated space for subsequent large allocations or heap contraction.</li>
+</ul>
+<hr>
+<h3 id="3-4-Relationship-between-bin-and-chunk"><a href="#3-4-Relationship-between-bin-and-chunk" class="headerlink" title="3.4 Relationship between bin and chunk"></a>3.4 Relationship between bin and chunk</h3><ul>
+<li><strong>bin</strong> is a categorized linked list of free chunks, grouped by chunk size and purpose.</li>
+<li><strong>chunk</strong> is the actual memory block, inserted into the corresponding bin when free, and removed from the bin when allocated.</li>
+<li>Each arena has its own set of bins, managing all free chunks within the arena.</li>
+<li>The bin mechanism allows ptmalloc to efficiently search, reuse, and coalesce free chunks, improving allocation performance and reducing fragmentation.</li>
+</ul>
+<hr>
+<h3 id="3-5-Typical-Management-Flow-Diagram"><a href="#3-5-Typical-Management-Flow-Diagram" class="headerlink" title="3.5 Typical Management Flow Diagram"></a>3.5 Typical Management Flow Diagram</h3><img  src=http://www.plantuml.com/plantuml/svg/hP6nJiGm38RtF8N7Lk89cW4XnC32SY34wAOE5ovDejYLWAV78NVISOAD9KFpvVljlonOnKnFJ1KSniYmwfdTmE6JHckc8lr3ktLRH246sHFC8O5y50AVApJOck1Xs6r1S8u4Rh-b0oYauFNOdYGONeX70p3TDAEgZfHas7G0QoWomV2G6zHiZxaS4Twy3ovGaakPwdOb1b7B2MuZOOy8ETaE_PK9S9wguDrxmRJ0dh30CDV32AfRLopsVzBI4hpfvtdllX8DHUhOY_J8ybjrzqcVY1QhoYDp1Ic3onY9NKYlFskSRli50IvlwBJ0xwG-5zjBvPOuLw6b_JPxcl8PTU6sPYNTmXhMvRy0>
+<hr>
+<p><strong>Summary:</strong>  </p>
+<ul>
+<li>Chunks in the heap are managed by bin classification, supporting efficient allocation, release, and reuse.</li>
+<li>Proper coalescing and fragmentation management ensures memory utilization and allocation performance.</li>
+<li>In multithreaded environments, each arena independently manages its own chunks and bins, further improving concurrency efficiency.</li>
+</ul>
+<h3 id="3-3-Chunk-Release-and-Reuse-Flow"><a href="#3-3-Chunk-Release-and-Reuse-Flow" class="headerlink" title="3.3 Chunk Release and Reuse Flow"></a>3.3 Chunk Release and Reuse Flow</h3><ol>
+<li>Locate the chunk.</li>
+<li>Check status to prevent double free.</li>
+<li>Insert into the appropriate bin.</li>
+<li>Coalesce adjacent free chunks (non-fastbin).</li>
+<li>Wait for reuse.</li>
+</ol>
+<p><strong>Note:</strong> fastbin does not coalesce immediately; small&#x2F;large bin will coalesce.</p>
+<hr>
+<h2 id="Chapter-4-Arena-Introduction-Allocation-and-Release"><a href="#Chapter-4-Arena-Introduction-Allocation-and-Release" class="headerlink" title="Chapter 4: Arena Introduction, Allocation, and Release"></a>Chapter 4: Arena Introduction, Allocation, and Release</h2><h3 id="6-1-What-is-an-arena"><a href="#6-1-What-is-an-arena" class="headerlink" title="6.1 What is an arena?"></a>6.1 What is an arena?</h3><ul>
+<li><strong>arena</strong> is the “memory pool” concept in ptmalloc. Each arena manages an independent heap space, with its own set of bins and a top chunk.</li>
+<li>The arena design is mainly for multithreaded environments, reducing lock contention and improving concurrent allocation efficiency.</li>
+<li>Each thread will preferentially use its local arena for memory allocation; only when the local arena is unavailable will it try other arenas or create a new one.</li>
+</ul>
+<h3 id="6-2-Number-of-arenas"><a href="#6-2-Number-of-arenas" class="headerlink" title="6.2 Number of arenas"></a>6.2 Number of arenas</h3><ul>
+<li><strong>Main arena</strong>: Each process automatically creates a main arena at startup, managing the main heap; all single-threaded allocation requests are handled by the main arena.</li>
+<li><strong>Auxiliary arenas</strong>: In multithreaded environments, to reduce lock contention, ptmalloc allocates independent auxiliary arenas for new threads. The number of auxiliary arenas is usually related to the number of CPU cores (e.g., 2 × CPU cores), and can be controlled by the environment variable <code>MALLOC_ARENA_MAX</code>.</li>
+<li><strong>Each arena</strong> has its own heap space and top chunk, independent from others.</li>
+</ul>
+<h3 id="6-3-Arena-Allocation-and-Release"><a href="#6-3-Arena-Allocation-and-Release" class="headerlink" title="6.3 Arena Allocation and Release"></a>6.3 Arena Allocation and Release</h3><ul>
+<li><strong>Main arena (brk&#x2F;sbrk)</strong>: The main arena’s heap space can only be released by contracting the contiguous space at the heap top (lowering the brk pointer), and is usually not released as a whole unless the process exits.</li>
+<li><strong>Auxiliary arenas (mmap or brk&#x2F;sbrk)</strong>:<ul>
+<li>Prefer to use brk&#x2F;sbrk to carve out space from the main heap; if insufficient, use mmap to allocate independent heap space.</li>
+<li>An auxiliary arena allocated by mmap will be released via munmap when all its chunks are free and no thread is using it, achieving true memory reclamation.</li>
+<li>As long as an auxiliary arena has chunks in use or is being used by a thread, it will not be released.</li>
+</ul>
+</li>
+</ul>
+<h3 id="6-4-Typical-Management-Flow-Diagram"><a href="#6-4-Typical-Management-Flow-Diagram" class="headerlink" title="6.4 Typical Management Flow Diagram"></a>6.4 Typical Management Flow Diagram</h3><img  src=http://www.plantuml.com/plantuml/svg/VL5DYzj03BtxL-YOXIrjOFVY74fQTcy9IpUN7fMnR0kFDMOqJfFzzPK_afgK5WR1w4dlIK_Qi7GOiOMYOrW_VydqJuPAx7qwq3bjFLVIaYHm5YWkghOnXb-7cbqZf0hhU-Xxy272Du-kMK0_o2MKojDhaFJE7mJhfmMy3yK_a1RFEzF1YaPi63XXJ5d-5eCR1XY_-WWk4YPIQs01Z2IuoVBTxMDvCP8PhmcxJSObh7QsCQVQcWigWEJ4COoRVts0L9F0wYVfGmQGRxqFpYG0-pDxndYPc1Ni2P7rRwnk9Brg09qxb0AFdkxvZF4Ocyzg0Hp6auqM-WJQeICepS8xcO6Rl1Aizc7kRrjJm7ai1PQ2Eh9WPnl5_yyb1PVP5FCNTFNiquB5NswkkRgNnbm-ibYqbI25RifEFfexSn7SBBS8PIGQwoN0P3EmGgyi5V3V9WyhVRgkLDpFFRH6yeHgs8djgBsqmoMNnkJRiJJIS6cz-MF7cPPLc_mt>
+
+<hr>
+<p><strong>Summary:</strong>  </p>
+<ul>
+<li>arena is the memory pool structure in ptmalloc, supporting efficient allocation in multithreaded environments.</li>
+<li>There is only one main arena; the number of auxiliary arenas depends on concurrency and system configuration.</li>
+<li>mmap-allocated auxiliary arenas can be released as a whole when completely free; the main arena is usually not released as a whole.</li>
+<li>Each arena independently manages its own heap space, bins, and top chunk.</li>
+</ul>
+<h2 id="Chapter-5-Multithreading-Arena-and-mmap-Management"><a href="#Chapter-5-Multithreading-Arena-and-mmap-Management" class="headerlink" title="Chapter 5: Multithreading, Arena, and mmap Management"></a>Chapter 5: Multithreading, Arena, and mmap Management</h2><h3 id="4-1-Arena-Mechanism-in-Multithreading"><a href="#4-1-Arena-Mechanism-in-Multithreading" class="headerlink" title="4.1 Arena Mechanism in Multithreading"></a>4.1 Arena Mechanism in Multithreading</h3><ul>
+<li>In multithreaded environments, ptmalloc allocates multiple independent arenas (memory pools) for different threads to reduce lock contention.</li>
+<li>Each arena has its own heap space and set of bins; threads will preferentially use their local arena for allocation, only trying other arenas or creating new ones if the local arena is unavailable.</li>
+<li>There is only one main arena; the number of auxiliary arenas depends on concurrency (usually 2 × CPU cores, configurable via <code>MALLOC_ARENA_MAX</code>).</li>
+</ul>
+<h4 id="4-1-1-Arena-Allocation-and-Selection-Flow"><a href="#4-1-1-Arena-Allocation-and-Selection-Flow" class="headerlink" title="4.1.1 Arena Allocation and Selection Flow"></a>4.1.1 Arena Allocation and Selection Flow</h4><ol>
+<li><strong>When a thread allocates memory</strong>, ptmalloc first checks for a free arena.</li>
+<li>If a free arena is found, the thread locks it and allocates memory from it.</li>
+<li>If no free arena is available and the maximum number of arenas has not been reached, a new arena is allocated.</li>
+<li>The new arena’s heap space is preferably carved out from the main heap via brk&#x2F;sbrk; if insufficient, mmap is used to allocate an independent “pseudo-heap”.</li>
+</ol>
+<h3 id="4-2-Detailed-Flow-of-mmap-allocated-Arenas"><a href="#4-2-Detailed-Flow-of-mmap-allocated-Arenas" class="headerlink" title="4.2 Detailed Flow of mmap-allocated Arenas"></a>4.2 Detailed Flow of mmap-allocated Arenas</h3><ul>
+<li>When the main heap cannot be expanded (e.g., occupied by other mappings, insufficient space, or fragmentation), ptmalloc uses mmap to allocate a new memory region in another area of virtual memory as the “pseudo-heap” for the arena.</li>
+<li>The number of mmap-allocated pseudo-heaps depends on the number of arenas (usually related to the number of concurrent threads).</li>
+</ul>
+<h4 id="4-2-1-Steps-for-mmap-allocated-Arenas"><a href="#4-2-1-Steps-for-mmap-allocated-Arenas" class="headerlink" title="4.2.1 Steps for mmap-allocated Arenas"></a>4.2.1 Steps for mmap-allocated Arenas</h4><ol>
+<li><strong>Check main heap availability</strong>  <ul>
+<li>Prefer to use brk&#x2F;sbrk to allocate space in the main heap.</li>
+</ul>
+</li>
+<li><strong>If main heap cannot be expanded</strong>  <ul>
+<li>Use mmap to allocate independent heap space for the new arena.</li>
+</ul>
+</li>
+<li><strong>Divide chunks in the mmap region</strong>  <ul>
+<li>Management is the same as the main heap; chunk allocation, release, and coalescing are all managed via the bin mechanism.</li>
+</ul>
+</li>
+<li><strong>Arena release</strong>  <ul>
+<li>Only when the entire mmap-allocated arena is free and no thread is using it will ptmalloc release the memory via munmap.</li>
+</ul>
+</li>
+</ol>
+<h3 id="4-3-Allocation-and-Release-Characteristics-in-Multithreading"><a href="#4-3-Allocation-and-Release-Characteristics-in-Multithreading" class="headerlink" title="4.3 Allocation and Release Characteristics in Multithreading"></a>4.3 Allocation and Release Characteristics in Multithreading</h3><ul>
+<li>Each thread preferentially uses its own arena, reducing lock contention and improving concurrent allocation efficiency.</li>
+<li>Chunks and bins in different arenas are completely isolated and do not affect each other.</li>
+<li>mmap-allocated arenas can be released as a whole when completely free; the main arena can only contract contiguous space at the heap top and is usually not released as a whole.</li>
+</ul>
+<h3 id="4-4-Multithreaded-Memory-Allocation-Flow-Diagram"><a href="#4-4-Multithreaded-Memory-Allocation-Flow-Diagram" class="headerlink" title="4.4 Multithreaded Memory Allocation Flow Diagram"></a>4.4 Multithreaded Memory Allocation Flow Diagram</h3><img  src=http://www.plantuml.com/plantuml/svg/RO-nJiGm44HxVyMMkOe-Lw1hg80A2L5kuebYnLuRhmDtVuzpLdJee9bcPzxEQE5SJFysPx2bZCyLMfG2GimNOk_ZoCL5EHetKVUK0U8COU8lTfu7ZyS3bHb2tGVqO8ZwvpWkpNGqy0hgNkDss00lV7PX3IHh690fJise9B7KxppEiFV0YZor7Y31zuxU3WtfX6Pm8fmJY_slqnKovEL1g-ohe2scYKSqtk-wrqm8rN3pEx58g2BbRrQicymzetzdLsYATMjjbFUv9TA0EjY35NO3j7ZJszvnNcMfR_VHMcBw0G00>
+
+<h3 id="4-5-Typical-Issues-and-Notes"><a href="#4-5-Typical-Issues-and-Notes" class="headerlink" title="4.5 Typical Issues and Notes"></a>4.5 Typical Issues and Notes</h3><ul>
+<li><strong>Too many arenas may increase memory fragmentation</strong>, but can significantly improve multithreaded allocation performance.</li>
+<li><strong>mmap-allocated arenas</strong> can be released as a whole when completely free; the main arena can only contract contiguous space at the heap top.</li>
+<li><strong>After a thread exits</strong>, its arena may be reused by other threads or released via munmap when completely free.</li>
+</ul>
+<hr>
+<p><strong>Summary:</strong><br>In multithreaded environments, ptmalloc uses the arena mechanism and mmap allocation strategy to achieve efficient, low-lock memory allocation. Each arena independently manages its own chunks and bins, improving concurrency and providing more flexible memory management.</p>
+<h2 id="Chapter-6-top-chunk-and-Chunk-Coalescing"><a href="#Chapter-6-top-chunk-and-Chunk-Coalescing" class="headerlink" title="Chapter 6: top chunk and Chunk Coalescing"></a>Chapter 6: top chunk and Chunk Coalescing</h2><h3 id="5-1-Concept-of-top-chunk"><a href="#5-1-Concept-of-top-chunk" class="headerlink" title="5.1 Concept of top chunk"></a>5.1 Concept of top chunk</h3><ul>
+<li><strong>top chunk</strong> is the largest contiguous free block at the highest address in the heap space of each arena (whether main heap or mmap pseudo-heap).</li>
+<li>The top chunk does not belong to any bin and is not inserted into any bin list.</li>
+<li>When allocating new memory, if there is no suitable chunk in the bins, ptmalloc will preferentially split a block from the top chunk for the user.</li>
+<li>If the top chunk is insufficient, ptmalloc will try to expand the heap (brk&#x2F;sbrk or mmap) to enlarge the top chunk.</li>
+</ul>
+<h3 id="5-2-When-and-How-Chunks-are-Coalesced-into-the-top-chunk"><a href="#5-2-When-and-How-Chunks-are-Coalesced-into-the-top-chunk" class="headerlink" title="5.2 When and How Chunks are Coalesced into the top chunk"></a>5.2 When and How Chunks are Coalesced into the top chunk</h3><ul>
+<li>When a user frees a chunk adjacent to the top chunk (i.e., the freed chunk is immediately below the top chunk), ptmalloc merges it into the top chunk, forming a larger top chunk.</li>
+<li>This ensures that the top chunk is always the largest contiguous free block in the heap, facilitating subsequent large allocations or heap contraction.</li>
+</ul>
+<h4 id="Flowchart-for-Coalescing-into-the-top-chunk"><a href="#Flowchart-for-Coalescing-into-the-top-chunk" class="headerlink" title="Flowchart for Coalescing into the top chunk"></a>Flowchart for Coalescing into the top chunk</h4><img  src=http://www.plantuml.com/plantuml/svg/NL0xRiCm3DrrYZVQLx273fawj5CwT6Ha9bPZIGOf8SZjIzb94HIG085yNsaXAMxuKXPuMXR5MPYxjKW_kc4jqMRPmouLLfIPuUUQhgCBPtI7zWHDF-Gv5PHiPzq1Rtq39tJVhBq3XW-MouECa5wXewsRsl4v01NCJEi6eJJ1vrJ2fUQgqDMy4FQS_qtCvYZtbgCnXFn3frlopGgUv8eiY3L5Mljcouioki_y9Fyb48uKabfIH8vPxXiwJU7iNZd3UxAVAtkXau6R_5Rq5igCREbaIxhBAaXHjT8okbrChU8l>
+
+<h3 id="5-3-Releasing-the-top-chunk"><a href="#5-3-Releasing-the-top-chunk" class="headerlink" title="5.3 Releasing the top chunk"></a>5.3 Releasing the top chunk</h3><ul>
+<li><p><strong>Main arena (brk&#x2F;sbrk) top chunk</strong>  </p>
+<ul>
+<li>Only when the top chunk is at the heap top and all space below it is free will ptmalloc try to contract the heap (lower the brk pointer) and return this space to the OS.</li>
+<li>If there are allocated chunks below the top chunk, it remains in memory and cannot be released.</li>
+</ul>
+</li>
+<li><p><strong>mmap-allocated arena top chunk</strong>  </p>
+<ul>
+<li>When the entire mmap-allocated arena (all chunks including the top chunk) is free and no thread is using it, ptmalloc will release the entire mmap region (including the top chunk) via munmap.</li>
+</ul>
+</li>
+</ul>
+<h3 id="5-4-Typical-Scenarios"><a href="#5-4-Typical-Scenarios" class="headerlink" title="5.4 Typical Scenarios"></a>5.4 Typical Scenarios</h3><ul>
+<li><strong>When frequently allocating and freeing large memory blocks</strong>, the coalescing and contraction mechanism of the top chunk can effectively reduce memory fragmentation and improve utilization.</li>
+<li><strong>In multithreaded environments</strong>, each arena has its own top chunk, independent of others.</li>
+</ul>
+<hr>
+<p><strong>Summary:</strong>  </p>
+<ul>
+<li>The top chunk is the largest contiguous free block not yet allocated in each arena, and its allocation and release mechanism ensures efficient heap utilization and dynamic contraction.</li>
+<li>Coalescing into the top chunk and heap contraction are important means to reduce memory fragmentation and improve system performance.</li>
+</ul>
+<blockquote>
+<p>If you have other questions, feel free to ask in the comments. I will collect and answer them in the appendix.</p>
+</blockquote>
+<h2 id="Appendix-Frequently-Asked-Questions-and-Summary"><a href="#Appendix-Frequently-Asked-Questions-and-Summary" class="headerlink" title="Appendix: Frequently Asked Questions and Summary"></a>Appendix: Frequently Asked Questions and Summary</h2><ul>
+<li><strong>Are bin structures and chunk addresses contiguous?</strong><br>No, bins are just linked list heads or pointer collections; chunks are distributed throughout the heap.</li>
+<li><strong>Is the size of the main arena fixed?</strong><br>No, it can be dynamically expanded or contracted, depending on the high address space of the heap.</li>
+<li><strong>How many top chunks does each arena have?</strong><br>Each arena has one top chunk; the number of arenas equals the number of top chunks.</li>
+<li><strong>Are chunks immediately returned to the OS after being freed?</strong><br>Only large chunks allocated by mmap or when the entire mmap arena is free will be released via munmap; ordinary heap chunks just enter the bin and wait for reuse.</li>
+<li><strong>Can the top chunk be released?</strong><br>The main arena’s top chunk can only be released when the heap top is continuously free, and is usually not frequently returned to the OS.<br>The mmap arena’s top chunk will be returned to the OS when the entire arena is released.</li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+    <div class="blog-post-comments">
+        <div id="utterances_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-1-Process-Virtual-Memory-Layout"><span class="toc-number">1.</span> <span class="toc-text">Chapter 1: Process Virtual Memory Layout</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-Virtual-Address-Space-Partitioning"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 Virtual Address Space Partitioning</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-Introduction-to-Virtual-Memory-Mapping"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 Introduction to Virtual Memory Mapping</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-Querying-Process-Virtual-Memory-Layout"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 Querying Process Virtual Memory Layout</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-2-libc-Memory-Management-and-ptmalloc"><span class="toc-number">2.</span> <span class="toc-text">Chapter 2: libc Memory Management and ptmalloc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Detailed-Structure-of-chunk"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 Detailed Structure of chunk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Relationship-between-chunk-bin-and-arena"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Relationship between chunk, bin, and arena</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Mapping-chunk-Allocation-to-Bins"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 Mapping chunk Allocation to Bins</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-Typical-Allocation-and-Management-Flow"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 Typical Allocation and Management Flow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-Arena-Allocation-and-Management"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 Arena Allocation and Management</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-1-Creation-of-the-Main-Arena"><span class="toc-number">2.5.1.</span> <span class="toc-text">2.5.1 Creation of the Main Arena</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-2-Allocation-of-Auxiliary-Arenas"><span class="toc-number">2.5.2.</span> <span class="toc-text">2.5.2 Allocation of Auxiliary Arenas</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-3-Memory-Source-for-Auxiliary-Arenas"><span class="toc-number">2.5.3.</span> <span class="toc-text">2.5.3 Memory Source for Auxiliary Arenas</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-4-Arena-Release"><span class="toc-number">2.5.4.</span> <span class="toc-text">2.5.4 Arena Release</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-3-Heap-and-Arena-Management"><span class="toc-number">3.</span> <span class="toc-text">Chapter 3: Heap and Arena Management</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Lifecycle-and-Management-Flow-of-Heap-Chunks"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Lifecycle and Management Flow of Heap Chunks</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-1-Allocation-Flow"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1.1 Allocation Flow</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-2-Release-Flow"><span class="toc-number">3.1.2.</span> <span class="toc-text">3.1.2 Release Flow</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-3-Reuse-Flow"><span class="toc-number">3.1.3.</span> <span class="toc-text">3.1.3 Reuse Flow</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Bin-Mechanism-and-Classification"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Bin Mechanism and Classification</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-1-fastbin"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.2.1 fastbin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-2-small-bin"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2.2 small bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-3-large-bin"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.2.3 large bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-4-unsorted-bin"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.2.4 unsorted bin</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Chunk-Coalescing-and-Fragmentation-Management"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Chunk Coalescing and Fragmentation Management</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-1-Coalescing-Mechanism"><span class="toc-number">3.3.1.</span> <span class="toc-text">3.3.1 Coalescing Mechanism</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-2-Coalescing-to-the-Top-Chunk"><span class="toc-number">3.3.2.</span> <span class="toc-text">3.3.2 Coalescing to the Top Chunk</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Relationship-between-bin-and-chunk"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Relationship between bin and chunk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-Typical-Management-Flow-Diagram"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 Typical Management Flow Diagram</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Chunk-Release-and-Reuse-Flow"><span class="toc-number">3.6.</span> <span class="toc-text">3.3 Chunk Release and Reuse Flow</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-4-Arena-Introduction-Allocation-and-Release"><span class="toc-number">4.</span> <span class="toc-text">Chapter 4: Arena Introduction, Allocation, and Release</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-What-is-an-arena"><span class="toc-number">4.1.</span> <span class="toc-text">6.1 What is an arena?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Number-of-arenas"><span class="toc-number">4.2.</span> <span class="toc-text">6.2 Number of arenas</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Arena-Allocation-and-Release"><span class="toc-number">4.3.</span> <span class="toc-text">6.3 Arena Allocation and Release</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-Typical-Management-Flow-Diagram"><span class="toc-number">4.4.</span> <span class="toc-text">6.4 Typical Management Flow Diagram</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-5-Multithreading-Arena-and-mmap-Management"><span class="toc-number">5.</span> <span class="toc-text">Chapter 5: Multithreading, Arena, and mmap Management</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Arena-Mechanism-in-Multithreading"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 Arena Mechanism in Multithreading</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-Arena-Allocation-and-Selection-Flow"><span class="toc-number">5.1.1.</span> <span class="toc-text">4.1.1 Arena Allocation and Selection Flow</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Detailed-Flow-of-mmap-allocated-Arenas"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 Detailed Flow of mmap-allocated Arenas</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-Steps-for-mmap-allocated-Arenas"><span class="toc-number">5.2.1.</span> <span class="toc-text">4.2.1 Steps for mmap-allocated Arenas</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Allocation-and-Release-Characteristics-in-Multithreading"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 Allocation and Release Characteristics in Multithreading</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Multithreaded-Memory-Allocation-Flow-Diagram"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 Multithreaded Memory Allocation Flow Diagram</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-Typical-Issues-and-Notes"><span class="toc-number">5.5.</span> <span class="toc-text">4.5 Typical Issues and Notes</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chapter-6-top-chunk-and-Chunk-Coalescing"><span class="toc-number">6.</span> <span class="toc-text">Chapter 6: top chunk and Chunk Coalescing</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Concept-of-top-chunk"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 Concept of top chunk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-When-and-How-Chunks-are-Coalesced-into-the-top-chunk"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 When and How Chunks are Coalesced into the top chunk</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Flowchart-for-Coalescing-into-the-top-chunk"><span class="toc-number">6.2.1.</span> <span class="toc-text">Flowchart for Coalescing into the top chunk</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Releasing-the-top-chunk"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 Releasing the top chunk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Typical-Scenarios"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 Typical Scenarios</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Appendix-Frequently-Asked-Questions-and-Summary"><span class="toc-number">7.</span> <span class="toc-text">Appendix: Frequently Asked Questions and Summary</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&text=libc Virtual Memory Management"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&is_video=false&description=libc Virtual Memory Management"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=libc Virtual Memory Management&body=Check out this article: http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&title=libc Virtual Memory Management"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&name=libc Virtual Memory Management&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2025/05/17/libc%20Virtual%20Memory%20Management/&t=libc Virtual Memory Management"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Allen
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+    <script type="text/javascript">
+      var utterances_repo = 'hellowBai/comments_server';
+      var utterances_issue_term = 'comments_path';
+      var utterances_label = 'Comment';
+      var utterances_theme = 'github-light';
+
+      (function(){
+          var script = document.createElement('script');
+
+          script.src = 'https://utteranc.es/client.js';
+          script.setAttribute('repo', utterances_repo);
+          script.setAttribute('issue-term', 'pathname');
+          script.setAttribute('label', utterances_label);
+          script.setAttribute('theme', utterances_theme);
+          script.setAttribute('crossorigin', 'anonymous');
+          script.async = true;
+          (document.getElementById('utterances_thread')).appendChild(script);
+      }());
+  </script>
+
+</body>
+</html>
