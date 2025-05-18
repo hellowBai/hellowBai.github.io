@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+       http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+>
+
+<url>
+ <loc>https://hellowbai.github.io/</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+<url>
+ <loc>https://hellowbai.github.io/about</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+<url>
+ <loc>https://hellowbai.github.io/archives</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+<url>
+ <loc>https://hellowbai.github.io/null</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+<url>
+ <loc>https://hellowbai.github.io/2025/05/17/libc%20Virtual%20Memory%20Management</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+<url>
+ <loc>https://hellowbai.github.io/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+<url>
+ <loc>https://hellowbai.github.io/2024/12/22/web3-0</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+<url>
+ <loc>https://hellowbai.github.io/2024/01/29/go-leaning</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+<url>
+ <loc>https://hellowbai.github.io/2023/11/12/commands</loc>
+ <priority>0.3</priority>
+ <lastmod>2025-05-18</lastmod>
+ <changefreq>yearly</changefreq>
+</url>
+
+</urlset>
