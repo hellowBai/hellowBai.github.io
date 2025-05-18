@@ -1,0 +1,26 @@
+{% plantuml %}
+start
+:用户调用 malloc(size);
+:ptmalloc 计算 size 对应的 bin 类型;
+if (bin 中有合适 chunk?) then (是)
+  :分配 chunk 给用户;
+else (否)
+  if (top chunk 足够?) then (是)
+    :切分 top chunk 分配;
+    :分配 chunk 给用户;
+  else (否)
+    :扩展堆空间(brk)或 mmap;
+    :切分 top chunk 分配;
+    :分配 chunk 给用户;
+  endif
+endif
+:用户调用 free(ptr);
+if (fastbin?) then (是)
+  :插入 fastbin，不合并;
+else (否)
+  :合并相邻空闲 chunk;
+  :插入 unsorted bin;
+endif
+:等待复用;
+stop
+{% endplantuml %}

@@ -6,19 +6,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="linux虚拟内存第一章：进程的虚拟内存布局在 Linux 操作系统中，每个进程都会被分配一个独立的虚拟地址空间。这个虚拟地址空间通常被划分为若干个区域，每个区域有不同的用途和访问权限。典型的内存布局如下：  代码段（Text Segment）：存放程序的可执行代码，通常是只读的，防止程序在运行时修改自身的指令。 数据段（Data Segment）：存放已初始化的全局变量和静态变量。 BSS段（B">
+    <meta name="description" content="第一章：进程虚拟内存布局1.1 虚拟地址空间分区 代码段（Text Segment）：存放程序的可执行代码，通常只读。 数据段（Data Segment）：存放已初始化的全局变量和静态变量。 BSS段（Block Started by Symbol）：存放未初始化的全局变量和静态变量，启动时初始化为0。 堆（Heap）：动态分配内存（如 malloc），由低地址向高地址增长。 栈（Stack）：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="libc虚拟内存管理">
 <meta property="og:url" content="http://hellowbai.github/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
 <meta property="og:site_name" content="Patton">
-<meta property="og:description" content="linux虚拟内存第一章：进程的虚拟内存布局在 Linux 操作系统中，每个进程都会被分配一个独立的虚拟地址空间。这个虚拟地址空间通常被划分为若干个区域，每个区域有不同的用途和访问权限。典型的内存布局如下：  代码段（Text Segment）：存放程序的可执行代码，通常是只读的，防止程序在运行时修改自身的指令。 数据段（Data Segment）：存放已初始化的全局变量和静态变量。 BSS段（B">
+<meta property="og:description" content="第一章：进程虚拟内存布局1.1 虚拟地址空间分区 代码段（Text Segment）：存放程序的可执行代码，通常只读。 数据段（Data Segment）：存放已初始化的全局变量和静态变量。 BSS段（Block Started by Symbol）：存放未初始化的全局变量和静态变量，启动时初始化为0。 堆（Heap）：动态分配内存（如 malloc），由低地址向高地址增长。 栈（Stack）：">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-05-17T11:28:17.000Z">
-<meta property="article:modified_time" content="2025-05-17T16:50:27.486Z">
+<meta property="article:modified_time" content="2025-05-18T03:04:47.491Z">
 <meta property="article:author" content="Allen">
 <meta property="article:tag" content="内存管理">
 <meta property="article:tag" content="内存泄露">
 <meta property="article:tag" content="malloc">
+<meta property="article:tag" content="虚拟内存">
 <meta name="twitter:card" content="summary">
     
     
@@ -93,7 +94,7 @@
       <ul>
         
         
-        <li><a class="icon" aria-label="Next post" href="/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86_part1/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Next post" href="/2025/05/02/libc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -123,7 +124,7 @@
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#linux%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98"><span class="toc-number">1.</span> <span class="toc-text">linux虚拟内存</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0%EF%BC%9A%E8%BF%9B%E7%A8%8B%E7%9A%84%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.1.</span> <span class="toc-text">第一章：进程的虚拟内存布局</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9A%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84"><span class="toc-number">1.2.</span> <span class="toc-text">第二章：虚拟内存映射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E7%AE%80%E4%BB%8B"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. 虚拟内存映射简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%9F%A5%E8%AF%A2%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. 查询进程虚拟内存布局的方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.3.</span> <span class="toc-text">3. 示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%9Alibc-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">第三章：libc 内存管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-malloc-%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. malloc 的实现原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-1-chunk-%E7%AE%80%E4%BB%8B"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">1.1 chunk 简介</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#chunk-%E7%9A%84%E7%BB%93%E6%9E%84"><span class="toc-number">1.3.1.1.1.</span> <span class="toc-text">chunk 的结构</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#chunk-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">chunk 的作用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-malloc-%E7%94%B3%E8%AF%B7-chunk"><span class="toc-number">1.3.1.3.</span> <span class="toc-text">1.2 malloc 申请 chunk</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ptmalloc-%E7%94%B3%E8%AF%B7-chunk-%E7%9A%84%E6%96%B9%E5%BC%8F%EF%BC%88%E6%9B%B4%E5%87%86%E7%A1%AE%E8%AF%B4%E6%98%8E%EF%BC%89"><span class="toc-number">1.3.1.3.1.</span> <span class="toc-text">ptmalloc 申请 chunk 的方式（更准确说明）</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A0%86%E4%B8%AD-chunk-%E7%9A%84%E7%AE%A1%E7%90%86%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.1.4.</span> <span class="toc-text">堆中 chunk 的管理过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#bin-%E4%B8%8E-chunk-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.3.1.5.</span> <span class="toc-text">bin 与 chunk 的关系</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%9C%A8-bin-%E4%B8%AD%E6%89%BE%E5%88%B0%E5%AF%B9%E5%BA%94%E7%9A%84-chunk-%E5%B9%B6%E8%BF%9B%E8%A1%8C%E9%87%8A%E6%94%BE"><span class="toc-number">1.3.1.6.</span> <span class="toc-text">如何在 bin 中找到对应的 chunk 并进行释放</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%EF%BC%8Cptmalloc-%E4%BD%BF%E7%94%A8-mmap-%E6%A8%A1%E6%8B%9F%E5%A0%86%E7%94%B3%E8%AF%B7%E5%86%85%E5%AD%98%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.1.7.</span> <span class="toc-text">多线程下，ptmalloc 使用 mmap 模拟堆申请内存的过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E5%A0%86%E5%8C%BA%E6%97%A0%E6%B3%95%E6%89%A9%E5%B1%95%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-number">1.3.1.8.</span> <span class="toc-text">主堆区无法扩展的情况</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%83%85%E5%86%B5%E4%B8%8B%EF%BC%8C%E4%BD%BF%E7%94%A8-mmap-%E7%AE%A1%E7%90%86%E7%9B%B8%E5%85%B3-chunk"><span class="toc-number">1.3.1.9.</span> <span class="toc-text">多线程情况下，使用 mmap 管理相关 chunk</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99-chunk-%E4%BC%9A%E5%90%88%E5%88%B0-top-chunk-%E9%87%8C%EF%BC%9F"><span class="toc-number">1.3.1.10.</span> <span class="toc-text">什么时候 chunk 会合到 top chunk 里？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#mmap-%E7%9A%84%E4%BC%AA%E5%A0%86%E6%9C%89%E5%87%A0%E4%B8%AA%EF%BC%9F%E6%9C%89%E5%87%A0%E4%B8%AA-top-chunk%EF%BC%9F"><span class="toc-number">1.3.1.11.</span> <span class="toc-text">mmap 的伪堆有几个？有几个 top chunk？</span></a></li></ol></li></ol></li></ol></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0%EF%BC%9A%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.</span> <span class="toc-text">第一章：进程虚拟内存布局</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%86%E5%8C%BA"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 虚拟地址空间分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E7%AE%80%E4%BB%8B"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 虚拟内存映射简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%9F%A5%E8%AF%A2%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 查询进程虚拟内存布局</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9Alibc-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E-ptmalloc"><span class="toc-number">2.</span> <span class="toc-text">第二章：libc 内存管理与 ptmalloc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-chunk-%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 chunk 结构详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-chunk%E3%80%81bin-%E4%B8%8E-arena-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 chunk、bin 与 arena 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-chunk-%E7%94%B3%E8%AF%B7%E4%B8%8E-bin-%E7%9A%84%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 chunk 申请与 bin 的对应关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%85%B8%E5%9E%8B%E5%88%86%E9%85%8D%E4%B8%8E%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B%E7%A4%BA%E6%84%8F"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 典型分配与管理流程示意</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-arena-%E7%9A%84%E7%94%B3%E8%AF%B7%E4%B8%8E%E5%88%86%E9%85%8D"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 arena 的申请与分配</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-1-%E4%B8%BB-arena-%E7%9A%84%E5%88%9B%E5%BB%BA"><span class="toc-number">2.5.1.</span> <span class="toc-text">2.5.1 主 arena 的创建</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-2-%E8%BE%85%E5%8A%A9-arena-%E7%9A%84%E7%94%B3%E8%AF%B7"><span class="toc-number">2.5.2.</span> <span class="toc-text">2.5.2 辅助 arena 的申请</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-3-%E8%BE%85%E5%8A%A9-arena-%E7%9A%84%E5%86%85%E5%AD%98%E6%9D%A5%E6%BA%90"><span class="toc-number">2.5.3.</span> <span class="toc-text">2.5.3 辅助 arena 的内存来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-4-arena-%E7%9A%84%E9%87%8A%E6%94%BE"><span class="toc-number">2.5.4.</span> <span class="toc-text">2.5.4 arena 的释放</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%9A%E5%A0%86%E4%B8%8E-arena-%E7%AE%A1%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">第三章：堆与 arena 管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%A0%86%E4%B8%AD-chunk-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 堆中 chunk 的生命周期与管理流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-1-%E5%88%86%E9%85%8D%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1.1 分配流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-2-%E9%87%8A%E6%94%BE%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.2.</span> <span class="toc-text">3.1.2 释放流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-3-%E5%A4%8D%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.3.</span> <span class="toc-text">3.1.3 复用流程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-bin-%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%88%86%E7%B1%BB%E7%AE%A1%E7%90%86"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 bin 机制与分类管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-1-fastbin"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.2.1 fastbin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-2-small-bin"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2.2 small bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-3-large-bin"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.2.3 large bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-4-unsorted-bin"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.2.4 unsorted bin</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-chunk-%E7%9A%84%E5%90%88%E5%B9%B6%E4%B8%8E%E7%A2%8E%E7%89%87%E6%95%B4%E7%90%86"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 chunk 的合并与碎片整理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-1-%E5%90%88%E5%B9%B6%EF%BC%88coalesce%EF%BC%89%E6%9C%BA%E5%88%B6"><span class="toc-number">3.3.1.</span> <span class="toc-text">3.3.1 合并（coalesce）机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-2-%E5%90%88%E5%B9%B6%E5%88%B0-top-chunk"><span class="toc-number">3.3.2.</span> <span class="toc-text">3.3.2 合并到 top chunk</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-bin-%E4%B8%8E-chunk-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 bin 与 chunk 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%85%B8%E5%9E%8B%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B%E5%9B%BE%E7%A4%BA"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 典型管理流程图示</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-chunk-%E7%9A%84%E9%87%8A%E6%94%BE%E4%B8%8E%E5%A4%8D%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">3.6.</span> <span class="toc-text">3.3 chunk 的释放与复用流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E7%AB%A0%EF%BC%9Aarena-%E7%9A%84%E4%BB%8B%E7%BB%8D%E3%80%81%E5%88%86%E9%85%8D%E4%B8%8E%E9%87%8A%E6%94%BE"><span class="toc-number">4.</span> <span class="toc-text">第四章：arena 的介绍、分配与释放</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%BB%80%E4%B9%88%E6%98%AF-arena%EF%BC%9F"><span class="toc-number">4.1.</span> <span class="toc-text">6.1 什么是 arena？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-arena-%E7%9A%84%E6%95%B0%E9%87%8F"><span class="toc-number">4.2.</span> <span class="toc-text">6.2 arena 的数量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-arena-%E7%9A%84%E5%88%86%E9%85%8D%E4%B8%8E%E9%87%8A%E6%94%BE"><span class="toc-number">4.3.</span> <span class="toc-text">6.3 arena 的分配与释放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%85%B8%E5%9E%8B%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">4.4.</span> <span class="toc-text">6.4 典型管理流程图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E7%AB%A0%EF%BC%9A%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8E-arena%E3%80%81mmap-%E7%AE%A1%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">第五章：多线程与 arena、mmap 管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84-arena-%E6%9C%BA%E5%88%B6"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 多线程下的 arena 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-arena-%E7%9A%84%E5%88%86%E9%85%8D%E4%B8%8E%E9%80%89%E6%8B%A9%E6%B5%81%E7%A8%8B"><span class="toc-number">5.1.1.</span> <span class="toc-text">4.1.1 arena 的分配与选择流程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-mmap-%E5%88%86%E9%85%8D-arena-%E7%9A%84%E8%AF%A6%E7%BB%86%E6%B5%81%E7%A8%8B"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 mmap 分配 arena 的详细流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-mmap-%E5%88%86%E9%85%8D-arena-%E7%9A%84%E6%AD%A5%E9%AA%A4"><span class="toc-number">5.2.1.</span> <span class="toc-text">4.2.1 mmap 分配 arena 的步骤</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84%E5%88%86%E9%85%8D%E4%B8%8E%E9%87%8A%E6%94%BE%E7%89%B9%E7%82%B9"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 多线程下的分配与释放特点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 多线程下的内存分配流程图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E5%85%B8%E5%9E%8B%E9%97%AE%E9%A2%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">5.5.</span> <span class="toc-text">4.5 典型问题与注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E7%AB%A0%EF%BC%9Atop-chunk-%E4%B8%8E-chunk-%E5%90%88%E5%B9%B6"><span class="toc-number">6.</span> <span class="toc-text">第六章：top chunk 与 chunk 合并</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-top-chunk-%E6%A6%82%E5%BF%B5"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 top chunk 概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-chunk-%E5%90%88%E5%B9%B6%E5%88%B0-top-chunk-%E7%9A%84%E6%97%B6%E6%9C%BA%E4%B8%8E%E6%B5%81%E7%A8%8B"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 chunk 合并到 top chunk 的时机与流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E5%88%B0-top-chunk-%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">6.2.1.</span> <span class="toc-text">合并到 top chunk 的流程图</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-top-chunk-%E7%9A%84%E9%87%8A%E6%94%BE"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 top chunk 的释放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF%E8%AF%B4%E6%98%8E"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 典型场景说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">附录：常见问题与总结</span></a></li></ol>
       </div>
     
   </span>
@@ -159,7 +160,7 @@
       
     <div class="article-tag">
         <i class="fa-solid fa-tag"></i>
-        <a class="p-category" href="/tags/malloc/" rel="tag">malloc</a>, <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" rel="tag">内存泄露</a>, <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a>
+        <a class="p-category" href="/tags/malloc/" rel="tag">malloc</a>, <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" rel="tag">内存泄露</a>, <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a>, <a class="p-category" href="/tags/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/" rel="tag">虚拟内存</a>
     </div>
 
 
@@ -168,275 +169,343 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <h1 id="linux虚拟内存"><a href="#linux虚拟内存" class="headerlink" title="linux虚拟内存"></a>linux虚拟内存</h1><h2 id="第一章：进程的虚拟内存布局"><a href="#第一章：进程的虚拟内存布局" class="headerlink" title="第一章：进程的虚拟内存布局"></a>第一章：进程的虚拟内存布局</h2><p>在 Linux 操作系统中，每个进程都会被分配一个独立的虚拟地址空间。这个虚拟地址空间通常被划分为若干个区域，每个区域有不同的用途和访问权限。典型的内存布局如下：</p>
-<ul>
-<li><strong>代码段（Text Segment）</strong>：存放程序的可执行代码，通常是只读的，防止程序在运行时修改自身的指令。</li>
+    <hr>
+<h2 id="第一章：进程虚拟内存布局"><a href="#第一章：进程虚拟内存布局" class="headerlink" title="第一章：进程虚拟内存布局"></a>第一章：进程虚拟内存布局</h2><h3 id="1-1-虚拟地址空间分区"><a href="#1-1-虚拟地址空间分区" class="headerlink" title="1.1 虚拟地址空间分区"></a>1.1 虚拟地址空间分区</h3><ul>
+<li><strong>代码段（Text Segment）</strong>：存放程序的可执行代码，通常只读。</li>
 <li><strong>数据段（Data Segment）</strong>：存放已初始化的全局变量和静态变量。</li>
-<li><strong>BSS段（Block Started by Symbol）</strong>：存放未初始化的全局变量和静态变量，程序启动时会被初始化为0。</li>
-<li><strong>堆（Heap）</strong>：用于动态分配内存（如通过 <code>malloc</code>），堆的空间由低地址向高地址增长。</li>
-<li><strong>栈（Stack）</strong>：用于函数调用时保存局部变量和返回地址，栈的空间由高地址向低地址增长。</li>
-<li><strong>内存映射区域（Memory Mapped Region）</strong>：用于映射文件或设备到进程的地址空间，常见于动态库的加载。</li>
+<li><strong>BSS段（Block Started by Symbol）</strong>：存放未初始化的全局变量和静态变量，启动时初始化为0。</li>
+<li><strong>堆（Heap）</strong>：动态分配内存（如 <code>malloc</code>），由低地址向高地址增长。</li>
+<li><strong>栈（Stack）</strong>：函数调用时保存局部变量和返回地址，由高地址向低地址增长。</li>
+<li><strong>内存映射区域（MMAP）</strong>：用于映射文件或设备，常见于动态库加载。</li>
 </ul>
-<p>下图展示了典型的 Linux 进程虚拟内存布局：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">高地址</span><br><span class="line">+---------------------+</span><br><span class="line">|     栈 (Stack)      |</span><br><span class="line">+---------------------+</span><br><span class="line">| 内存映射区域 (MMAP)   |</span><br><span class="line">+---------------------+</span><br><span class="line">|        堆 (Heap)    |</span><br><span class="line">+---------------------+</span><br><span class="line">|        BSS段        |</span><br><span class="line">+---------------------+</span><br><span class="line">|       数据段         |</span><br><span class="line">+---------------------+</span><br><span class="line">|       代码段         |</span><br><span class="line">+---------------------+</span><br><span class="line">低地址</span><br></pre></td></tr></table></figure>
 
-<p>这种分区方式有助于操作系统进行内存保护和管理，提高了系统的安全性和稳定性。</p>
-<h2 id="第二章：虚拟内存映射"><a href="#第二章：虚拟内存映射" class="headerlink" title="第二章：虚拟内存映射"></a>第二章：虚拟内存映射</h2><h3 id="1-虚拟内存映射简介"><a href="#1-虚拟内存映射简介" class="headerlink" title="1. 虚拟内存映射简介"></a>1. 虚拟内存映射简介</h3><p>虚拟内存映射（Memory Mapping）是指将文件或设备内容映射到进程的虚拟地址空间。这样，进程可以像访问普通内存一样访问文件内容，常用于动态库加载、文件I&#x2F;O优化等场景。Linux 通过 <code>mmap</code> 系统调用实现内存映射。</p>
-<h3 id="2-查询进程虚拟内存布局的方法"><a href="#2-查询进程虚拟内存布局的方法" class="headerlink" title="2. 查询进程虚拟内存布局的方法"></a>2. 查询进程虚拟内存布局的方法</h3><p>在 Linux 系统中，可以通过多种方式查看进程的虚拟内存布局：</p>
-<ul>
-<li><p><strong>&#x2F;proc&#x2F;[pid]&#x2F;maps 文件</strong><br>该文件记录了进程的所有虚拟内存区域及其属性。可以通过如下命令查看当前进程（如 pid 为 1234）的内存布局：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/1234/maps</span><br></pre></td></tr></table></figure>
-<p>输出内容包括每个内存区域的起止地址、权限、偏移量、设备、inode 以及映射的文件名等信息。</p>
-</li>
-<li><p><strong>pmap 命令</strong><br><code>pmap</code> 可以以更友好的格式显示进程的内存映射信息。例如：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pmap 1234</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>proc文件系统其他相关文件</strong><br><code>/proc/[pid]/smaps</code> 提供了更详细的内存使用信息，包括每个区域的物理内存占用、共享&#x2F;私有等。</p>
-</li>
+<h3 id="1-2-虚拟内存映射简介"><a href="#1-2-虚拟内存映射简介" class="headerlink" title="1.2 虚拟内存映射简介"></a>1.2 虚拟内存映射简介</h3><ul>
+<li>虚拟内存映射（Memory Mapping）允许将文件或设备内容映射到进程虚拟地址空间，常用于动态库加载、文件I&#x2F;O优化等。Linux 通过 <code>mmap</code> 实现。</li>
 </ul>
-<h3 id="3-示例"><a href="#3-示例" class="headerlink" title="3. 示例"></a>3. 示例</h3><p>假设有一个进程 pid 为 1234，执行如下命令：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/1234/maps</span><br></pre></td></tr></table></figure>
+<h3 id="1-3-查询进程虚拟内存布局"><a href="#1-3-查询进程虚拟内存布局" class="headerlink" title="1.3 查询进程虚拟内存布局"></a>1.3 查询进程虚拟内存布局</h3><ul>
+<li><code>/proc/[pid]/maps</code>：记录进程所有虚拟内存区域及属性。</li>
+<li><code>pmap</code> 命令：友好显示进程内存映射。</li>
+<li><code>/proc/[pid]/smaps</code>：详细内存使用信息。</li>
+</ul>
+<hr>
+<h2 id="第二章：libc-内存管理与-ptmalloc"><a href="#第二章：libc-内存管理与-ptmalloc" class="headerlink" title="第二章：libc 内存管理与 ptmalloc"></a>第二章：libc 内存管理与 ptmalloc</h2><h3 id="2-1-chunk-结构详解"><a href="#2-1-chunk-结构详解" class="headerlink" title="2.1 chunk 结构详解"></a>2.1 chunk 结构详解</h3><p>在 ptmalloc（glibc 默认的 malloc 实现）中，<strong>chunk</strong> 是内存分配和管理的基本单元。每个 chunk 由两部分组成：</p>
+<ul>
+<li><strong>元数据（metadata）</strong>：存储在 chunk 的头部，包含如下信息：<ul>
+<li>chunk 的大小</li>
+<li>当前 chunk 是否被分配（in-use 标志）</li>
+<li>前一个 chunk 是否空闲（prev_inuse 标志）</li>
+<li>指向前后 chunk 的指针（仅空闲 chunk 用于链表管理）</li>
+</ul>
+</li>
+<li><strong>用户数据区</strong>：真正返回给用户使用的内存空间。</li>
+</ul>
+<p>chunk 的结构大致如下（伪代码）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span> &#123;</span></span><br><span class="line">    <span class="type">size_t</span>      prev_size;  <span class="comment">// 前一个 chunk 的大小（仅前一个 chunk 空闲时有效）</span></span><br><span class="line">    <span class="type">size_t</span>      size;       <span class="comment">// 当前 chunk 的大小和状态标志</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd</span>;</span> <span class="comment">// 指向下一个空闲 chunk（仅空闲 chunk 有效）</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk</span>;</span> <span class="comment">// 指向上一个空闲 chunk（仅空闲 chunk 有效）</span></span><br><span class="line">    <span class="comment">// ...用户数据区...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<p>可能输出如下内容：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">00400000-00452000 r-xp 00000000 08:01 367810                             /usr/bin/bash</span><br><span class="line">00651000-00652000 r--p 00051000 08:01 367810                             /usr/bin/bash</span><br><span class="line">00652000-0065b000 rw-p 00052000 08:01 367810                             /usr/bin/bash</span><br><span class="line">...</span><br><span class="line">7fff5b7c0000-7fff5b7e1000 rw-p 00000000 00:00 0                          [stack]</span><br></pre></td></tr></table></figure>
-
-<p>每一行代表一个虚拟内存区域，包括起止地址、权限、映射文件等信息。</p>
-<h2 id="第三章：libc-内存管理"><a href="#第三章：libc-内存管理" class="headerlink" title="第三章：libc 内存管理"></a>第三章：libc 内存管理</h2><p>在 Linux 系统中，用户空间的内存分配和释放主要依赖于 C 标准库（libc）提供的内存管理函数，如 <code>malloc</code>、<code>free</code>、<code>calloc</code> 和 <code>realloc</code>。这些函数的底层实现通常会调用操作系统的系统调用（如 <code>brk</code>、<code>sbrk</code> 和 <code>mmap</code>）来向内核申请或释放内存。</p>
-<h3 id="1-malloc-的实现原理"><a href="#1-malloc-的实现原理" class="headerlink" title="1. malloc 的实现原理"></a>1. malloc 的实现原理</h3><h4 id="1-1-chunk-简介"><a href="#1-1-chunk-简介" class="headerlink" title="1.1 chunk 简介"></a>1.1 chunk 简介</h4><p>在 Linux 的内存分配实现（如 glibc 的 ptmalloc）中，<strong>chunk</strong> 是内存分配器管理内存的基本单元。每当程序通过 <code>malloc</code> 申请内存时，分配器实际上会分配一个 chunk 给用户。chunk 结构不仅包含用户可用的数据区，还包含用于管理的元数据。</p>
-<h5 id="chunk-的结构"><a href="#chunk-的结构" class="headerlink" title="chunk 的结构"></a>chunk 的结构</h5><p>一个典型的 chunk 结构如下：</p>
+<h3 id="2-2-chunk、bin-与-arena-的关系"><a href="#2-2-chunk、bin-与-arena-的关系" class="headerlink" title="2.2 chunk、bin 与 arena 的关系"></a>2.2 chunk、bin 与 arena 的关系</h3><ul>
+<li><strong>arena</strong>：ptmalloc 的内存池结构。每个 arena 管理一块独立的堆空间（可以是主堆区，也可以是 mmap 分配的伪堆），并维护自己的 bin 列表和 chunk 管理。</li>
+<li><strong>bin</strong>：bin 是一组链表，用于分类和管理不同大小、不同用途的空闲 chunk。每个 arena 内部有自己的 bin 集合，互不干扰。</li>
+<li><strong>chunk</strong>：实际的内存块，分配&#x2F;释放的基本单元。空闲 chunk 会被插入到所属 arena 的某个 bin 链表中，已分配 chunk 只在堆空间中存在，不在 bin 链表中。</li>
+</ul>
+<p><strong>关系总结：</strong></p>
 <ul>
-<li><strong>头部（metadata）</strong>：记录该 chunk 的大小、使用状态（已分配&#x2F;空闲）、与相邻 chunk 的关系等信息。</li>
-<li><strong>数据区（user data）</strong>：真正返回给用户程序使用的内存区域。</li>
-<li><strong>（部分实现还会有尾部信息，用于双向链表管理等）</strong></li>
+<li>一个 arena 管理一块堆空间和一组 bin。</li>
+<li>一个 bin 管理一类（特定大小或用途）的空闲 chunk。</li>
+<li>chunk 通过 bin 链表被组织和管理，分配和释放都在所属 arena 内部完成。</li>
 </ul>
-<p>chunk 的元数据对于分配器内部管理非常重要，但对用户是透明的。用户只能访问数据区，不能直接操作 chunk 的头部。</p>
-<h4 id="chunk-的作用"><a href="#chunk-的作用" class="headerlink" title="chunk 的作用"></a>chunk 的作用</h4><ul>
-<li>管理内存分配与释放，支持高效查找和合并空闲块，减少碎片。</li>
-<li>支持不同大小的内存分配请求，提高内存利用率。</li>
-<li>通过链表或其他结构组织空闲 chunk，便于快速分配和回收。</li>
-</ul>
-<p>chunk 机制是现代内存分配器高效管理虚拟内存的核心基础。</p>
-<h4 id="1-2-malloc-申请-chunk"><a href="#1-2-malloc-申请-chunk" class="headerlink" title="1.2 malloc 申请 chunk"></a>1.2 malloc 申请 chunk</h4><p>当程序调用 <code>malloc</code> 申请内存时，glibc 的分配器（如 ptmalloc）会按照如下流程处理 chunk 的分配：</p>
+<h3 id="2-3-chunk-申请与-bin-的对应关系"><a href="#2-3-chunk-申请与-bin-的对应关系" class="headerlink" title="2.3 chunk 申请与 bin 的对应关系"></a>2.3 chunk 申请与 bin 的对应关系</h3><p>当用户调用 <code>malloc(size)</code> 申请内存时，ptmalloc 会根据 size 选择合适的 bin 类型：</p>
 <ul>
-<li><strong>优先复用空闲 chunk</strong>：首先在当前 arena 的空闲 chunk 链表中查找是否有合适大小的空闲块。如果有，直接分配给用户，无需向操作系统申请新内存。</li>
-<li><strong>没有合适空闲 chunk 时</strong>，分配器会向操作系统申请新的虚拟内存区域，并将其划分为一个或多个 chunk。</li>
+<li><p><strong>fastbin</strong>：  </p>
+<ul>
+<li>管理非常小的 chunk（如小于 64 字节，具体阈值依实现而定）。</li>
+<li>释放和分配速度极快，但不立即合并相邻空闲 chunk，可能产生碎片。</li>
+<li>适合频繁分配和释放的小对象。</li>
 </ul>
-<h5 id="ptmalloc-申请-chunk-的方式（更准确说明）"><a href="#ptmalloc-申请-chunk-的方式（更准确说明）" class="headerlink" title="ptmalloc 申请 chunk 的方式（更准确说明）"></a>ptmalloc 申请 chunk 的方式（更准确说明）</h5><p>ptmalloc（glibc 默认的内存分配器）分配 chunk 时，主要有两种方式：</p>
+</li>
+<li><p><strong>small bin</strong>：  </p>
+<ul>
+<li>管理较小但大于 fastbin 的 chunk（如 64 字节到 512 字节）。</li>
+<li>支持合并相邻空闲 chunk，减少碎片。</li>
+<li>适合一般的小对象分配。</li>
+</ul>
+</li>
+<li><p><strong>large bin</strong>：  </p>
+<ul>
+<li>管理更大的 chunk（如大于 small bin 上限）。</li>
+<li>采用不同的查找和合并策略，适合大对象分配。</li>
+</ul>
+</li>
+<li><p><strong>unsorted bin</strong>：  </p>
+<ul>
+<li>刚释放或合并后的 chunk 会先进入 unsorted bin，后续再根据大小转移到 small bin 或 large bin。</li>
+<li>作为临时缓冲区，提高分配和回收效率。</li>
+</ul>
+</li>
+</ul>
+<p><strong>chunk 申请流程：</strong></p>
 <ol>
-<li><strong>通过 brk&#x2F;sbrk 扩展堆区（heap）</strong><ul>
-<li>通常情况下，当申请的内存较小（如小于128KB，具体阈值由实现决定）且堆区有空间时，ptmalloc 会通过 <code>brk</code> 或 <code>sbrk</code> 系统调用扩展进程的堆边界，将新获得的内存区域划分为 chunk，位于虚拟内存的堆区。</li>
-</ul>
-</li>
-<li><strong>通过 mmap 分配内存映射区（MMAP）</strong><ul>
-<li>当申请的内存较大（如大于128KB）时，ptmalloc 会通过 <code>mmap</code> 系统调用直接向操作系统申请一块新的虚拟内存区域，作为一个大 chunk，位于内存映射区。</li>
-<li><strong>注意：即使申请的内存较小，也有可能通过 mmap 分配</strong>，例如：<ul>
-<li>堆区无法扩展（如地址空间碎片、资源限制等）时，即使是小块分配也会退而求其次用 mmap。</li>
-<li>多线程环境下为新的 arena 分配独立堆空间时，如果主堆空间不足，也可能通过 mmap 分配。</li>
-<li>某些特殊配置或安全机制下，ptmalloc 也可能优先使用 mmap。</li>
-</ul>
-</li>
-</ul>
-</li>
+<li>ptmalloc 首先在对应 bin（fastbin、small bin、large bin）中查找合适的空闲 chunk。</li>
+<li>如果找到，直接分配给用户。</li>
+<li>如果没有合适的 chunk，则尝试从 top chunk 切分，或向操作系统申请新内存（brk&#x2F;sbrk 或 mmap）。</li>
+</ol>
+<p><strong>chunk 释放流程：</strong></p>
+<ol>
+<li>释放的 chunk 会根据大小和状态插入到对应的 bin。</li>
+<li>非 fastbin 的 chunk 释放时会尝试与相邻空闲 chunk 合并，合并后的大 chunk 先进入 unsorted bin，再转移到合适的 bin。</li>
+<li>fastbin 的 chunk 释放时不会立即合并，直接插入 fastbin 链表。</li>
 </ol>
 <p><strong>总结：</strong></p>
 <ul>
-<li>chunk 既可能通过 brk&#x2F;sbrk 分配在堆区，也可能通过 mmap 分配在内存映射区，实际分配方式不仅取决于申请大小，还与堆区可用性、系统资源和多线程等因素有关。</li>
+<li>chunk 是实际的内存块，bin 是 chunk 的分类管理链表，arena 是内存池和 bin 的集合。</li>
+<li>chunk 的分配和释放都在所属 arena 内部完成，空闲 chunk 通过 bin 管理，已分配 chunk 只在堆空间中存在。</li>
+<li>不同大小的 chunk 会被插入到不同的 bin，提升分配效率并减少碎片。</li>
 </ul>
-<h4 id="堆中-chunk-的管理过程"><a href="#堆中-chunk-的管理过程" class="headerlink" title="堆中 chunk 的管理过程"></a>堆中 chunk 的管理过程</h4><p>在 ptmalloc（glibc 默认的内存分配器）中，堆区（heap）中的 chunk 管理过程如下：</p>
-<ol>
-<li><p><strong>分配</strong>  </p>
+<h3 id="2-4-典型分配与管理流程示意"><a href="#2-4-典型分配与管理流程示意" class="headerlink" title="2.4 典型分配与管理流程示意"></a>2.4 典型分配与管理流程示意</h3><ol>
+<li>用户调用 <code>malloc(size)</code>。</li>
+<li>ptmalloc 计算 size 对应的 bin 类型。</li>
+<li>在所属 arena 的该 bin 链表中查找空闲 chunk。</li>
+<li>找到则分配，未找到则切分 top chunk 或申请新内存。</li>
+<li>用户调用 <code>free(ptr)</code> 释放 chunk。</li>
+<li>chunk 插入所属 bin，必要时合并相邻空闲 chunk。</li>
+</ol>
+<h3 id="2-5-arena-的申请与分配"><a href="#2-5-arena-的申请与分配" class="headerlink" title="2.5 arena 的申请与分配"></a>2.5 arena 的申请与分配</h3><p>在 ptmalloc 中，<strong>arena</strong> 是内存分配的核心结构，主要用于支持多线程环境下的高效分配。arena 的申请和分配流程如下：</p>
+<h4 id="2-5-1-主-arena-的创建"><a href="#2-5-1-主-arena-的创建" class="headerlink" title="2.5.1 主 arena 的创建"></a>2.5.1 主 arena 的创建</h4><ul>
+<li>程序启动时，ptmalloc 会自动创建一个主 arena（main arena），并与主堆区（heap）绑定。</li>
+<li>主 arena 管理进程的主堆空间，所有单线程分配请求都在主 arena 上完成。</li>
+</ul>
+<h4 id="2-5-2-辅助-arena-的申请"><a href="#2-5-2-辅助-arena-的申请" class="headerlink" title="2.5.2 辅助 arena 的申请"></a>2.5.2 辅助 arena 的申请</h4><ul>
+<li>在多线程环境下，为减少锁竞争，ptmalloc 会为新线程分配独立的辅助 arena（secondary arena）。</li>
+<li>辅助 arena 的数量通常与 CPU 核心数相关（如 2 × CPU 核心数），也可通过环境变量 <code>MALLOC_ARENA_MAX</code> 控制最大数量。</li>
+<li>当线程需要分配内存且主 arena 被锁定时，ptmalloc 会尝试分配新的辅助 arena。</li>
+</ul>
+<h4 id="2-5-3-辅助-arena-的内存来源"><a href="#2-5-3-辅助-arena-的内存来源" class="headerlink" title="2.5.3 辅助 arena 的内存来源"></a>2.5.3 辅助 arena 的内存来源</h4><ul>
+<li><strong>优先使用 brk&#x2F;sbrk</strong>：如果主堆区高地址有足够连续空间，ptmalloc 会通过 brk&#x2F;sbrk 在主堆区后面“切割”一块空间作为新的 arena 堆区。</li>
+<li><strong>回退到 mmap</strong>：如果主堆区无法扩展（如被其他映射占用或空间不足），ptmalloc 会通过 mmap 在虚拟内存的其他区域分配一块新的“模拟堆”空间，作为辅助 arena 的堆区。</li>
+</ul>
+<h4 id="2-5-4-arena-的释放"><a href="#2-5-4-arena-的释放" class="headerlink" title="2.5.4 arena 的释放"></a>2.5.4 arena 的释放</h4><ul>
+<li>主 arena 的空间通常不会被整体释放，除非进程退出。</li>
+<li>mmap 分配的辅助 arena，当其所有 chunk 都空闲且无线程使用时，会整体通过 munmap 归还操作系统。</li>
+</ul>
+<p><strong>总结：</strong></p>
 <ul>
-<li>当程序调用 <code>malloc</code> 申请内存时，ptmalloc 首先在当前 arena 的空闲 chunk 链表（如 fastbin、unsorted bin、small bin、large bin 等）中查找是否有合适大小的空闲 chunk。</li>
-<li>如果找到合适的空闲 chunk，则将其从链表中移除并分配给用户。</li>
-<li>如果没有合适的空闲 chunk，ptmalloc 会尝试通过 <code>brk</code>&#x2F;<code>sbrk</code> 扩展堆区，获得新的内存区域并划分为 chunk。</li>
+<li>主 arena 只有一个，程序启动时自动创建。</li>
+<li>多线程下可动态申请多个辅助 arena，提升并发分配效率。</li>
+<li>辅助 arena 优先用 brk&#x2F;sbrk 分配空间，不足时用 mmap 分配“模拟堆”。</li>
+<li>mmap 分配的 arena 在完全空闲时可以整体释放。</li>
+</ul>
+<hr>
+<h2 id="第三章：堆与-arena-管理"><a href="#第三章：堆与-arena-管理" class="headerlink" title="第三章：堆与 arena 管理"></a>第三章：堆与 arena 管理</h2><h3 id="3-1-堆中-chunk-的生命周期与管理流程"><a href="#3-1-堆中-chunk-的生命周期与管理流程" class="headerlink" title="3.1 堆中 chunk 的生命周期与管理流程"></a>3.1 堆中 chunk 的生命周期与管理流程</h3><h4 id="3-1-1-分配流程"><a href="#3-1-1-分配流程" class="headerlink" title="3.1.1 分配流程"></a>3.1.1 分配流程</h4><ol>
+<li><strong>分配请求</strong>  <ul>
+<li>用户调用 <code>malloc(size)</code>，ptmalloc 计算 size 并选择合适的 bin 类型。</li>
 </ul>
 </li>
-<li><p><strong>释放</strong>  </p>
-<ul>
-<li>当用户调用 <code>free</code> 释放内存时，ptmalloc 会将该 chunk 标记为空闲，并根据 chunk 的大小和状态，插入到对应的 bin 链表中。</li>
-<li>ptmalloc 会尝试与相邻的空闲 chunk 合并（coalesce），以减少内存碎片。</li>
+<li><strong>查找空闲 chunk</strong>  <ul>
+<li>优先在所属 arena 的对应 bin（fastbin、small bin、large bin）链表中查找合适的空闲 chunk。</li>
+<li>如果 bin 中有合适 chunk，直接分配给用户。</li>
 </ul>
 </li>
-<li><p><strong>复用</strong>  </p>
-<ul>
-<li>后续的 <code>malloc</code> 请求会优先复用 bin 链表中的空闲 chunk，提高分配效率，减少系统调用次数。</li>
-</ul>
-</li>
-<li><p><strong>bin 机制</strong>  </p>
-<ul>
-<li>ptmalloc 通过多种 bin（如 fastbin、small bin、large bin、unsorted bin）对不同大小和状态的空闲 chunk 进行分类管理，便于快速查找和复用。</li>
-<li>fastbin 适用于快速分配和释放的小块内存，small&#x2F;large bin 用于管理更大或更复杂的 chunk。</li>
-</ul>
-</li>
-<li><p><strong>碎片整理</strong>  </p>
-<ul>
-<li>在释放和分配过程中，ptmalloc 会自动合并相邻的空闲 chunk，减少堆区碎片，提升内存利用率。</li>
+<li><strong>切分 top chunk 或扩展堆</strong>  <ul>
+<li>如果 bin 中没有合适 chunk，则尝试从 top chunk 切分出一块空间。</li>
+<li>如果 top chunk 空间不足，则通过 <code>brk</code>&#x2F;<code>sbrk</code> 或 <code>mmap</code> 向操作系统申请更多内存，扩展 top chunk，再切分分配。</li>
 </ul>
 </li>
 </ol>
-<p><strong>总结</strong>：<br>堆中的 chunk 通过 bin 链表进行分类管理，支持高效的分配、释放和复用，并通过合并机制减少碎片。这一机制保证了堆区内存的高效利用和分配性能。</p>
-<h4 id="bin-与-chunk-的关系"><a href="#bin-与-chunk-的关系" class="headerlink" title="bin 与 chunk 的关系"></a>bin 与 chunk 的关系</h4><p>在 ptmalloc 的内存管理中，<strong>chunk</strong> 是实际分配和释放的内存块，而 <strong>bin</strong> 是用于管理这些 chunk 的分类链表结构。二者的关系如下：</p>
-<ul>
-<li><p><strong>chunk</strong>：  </p>
-<ul>
-<li>是内存分配器管理的基本单元，每个 chunk 包含元数据和用户数据区。</li>
-<li>chunk 可能处于已分配（in-use）或空闲（free）状态。</li>
-<li>空闲的 chunk 会被组织到不同的 bin 中，等待后续复用。</li>
+<h4 id="3-1-2-释放流程"><a href="#3-1-2-释放流程" class="headerlink" title="3.1.2 释放流程"></a>3.1.2 释放流程</h4><ol>
+<li><strong>释放 chunk</strong>  <ul>
+<li>用户调用 <code>free(ptr)</code>，ptmalloc 定位到对应 chunk。</li>
 </ul>
 </li>
-<li><p><strong>bin</strong>：  </p>
-<ul>
-<li>是一组链表，用于分类和管理不同大小、不同用途的空闲 chunk。</li>
-<li>常见的 bin 类型有：<ul>
-<li><strong>fastbin</strong>：管理小块（如小于64字节）的空闲 chunk，分配和释放速度快，但不立即合并相邻空闲块。</li>
-<li><strong>small bin</strong>：管理较小但大于 fastbin 的 chunk，支持合并操作。</li>
-<li><strong>large bin</strong>：管理更大的 chunk，采用不同的查找和合并策略。</li>
-<li><strong>unsorted bin</strong>：刚释放的 chunk 会先进入 unsorted bin，后续再根据大小分配到其他 bin。</li>
+<li><strong>合并相邻空闲 chunk</strong>  <ul>
+<li>对于非 fastbin 的 chunk，ptmalloc 会检查前后相邻 chunk 是否空闲，若空闲则立即合并（coalesce），形成更大的空闲块。</li>
+<li>合并后的 chunk 会先进入 unsorted bin，后续再转移到 small bin 或 large bin。</li>
+<li>fastbin 的 chunk 释放时不会立即合并，只是简单插入 fastbin 链表。</li>
 </ul>
 </li>
-<li>每个 bin 内部是一个链表，存放对应类型的空闲 chunk。</li>
-</ul>
-</li>
-</ul>
-<p><strong>管理流程简述</strong>：</p>
-<ul>
-<li>当 chunk 被释放时，会根据其大小和状态插入到对应的 bin 链表中。</li>
-<li>当有新的内存分配请求时，ptmalloc 会优先在合适的 bin 中查找可用的空闲 chunk，找到后直接复用，提升分配效率。</li>
-<li>通过 bin 的分类管理，可以快速定位和复用空闲 chunk，同时减少内存碎片。</li>
-</ul>
-<p><strong>总结</strong>：<br>bin 是 chunk 的管理容器，chunk 是实际的内存块。bin 机制让 ptmalloc 能够高效地管理大量不同大小的空闲 chunk，实现高性能和低碎片的内存分配。</p>
-<h4 id="如何在-bin-中找到对应的-chunk-并进行释放"><a href="#如何在-bin-中找到对应的-chunk-并进行释放" class="headerlink" title="如何在 bin 中找到对应的 chunk 并进行释放"></a>如何在 bin 中找到对应的 chunk 并进行释放</h4><p>当用户调用 <code>free(ptr)</code> 释放内存时，ptmalloc 会按照如下流程在 bin 中管理和处理 chunk：</p>
-<ol>
-<li><p><strong>定位 chunk</strong>  </p>
-<ul>
-<li>通过指针 <code>ptr</code>，ptmalloc 计算出对应的 chunk 结构地址（通常是 <code>ptr</code> 前面的元数据区域）。</li>
-</ul>
-</li>
-<li><p><strong>判断 chunk 状态</strong>  </p>
-<ul>
-<li>检查该 chunk 是否已经处于空闲状态，防止重复释放（double free）。</li>
-</ul>
-</li>
-<li><p><strong>插入到合适的 bin</strong>  </p>
-<ul>
-<li>根据 chunk 的大小，选择合适的 bin（如 fastbin、small bin、large bin 或 unsorted bin）。</li>
-<li>将该 chunk 插入到对应 bin 的链表头部或尾部（不同 bin 策略不同）。</li>
-</ul>
-</li>
-<li><p><strong>合并相邻空闲 chunk（coalesce）</strong>  </p>
-<ul>
-<li>对于非 fastbin 的 chunk，ptmalloc 会尝试与前后相邻的空闲 chunk 合并，减少碎片。</li>
-<li>合并后的大 chunk 会重新插入到合适的 bin。</li>
-</ul>
-</li>
-<li><p><strong>等待复用</strong>  </p>
-<ul>
-<li>被插入 bin 的空闲 chunk 会在后续的 <code>malloc</code> 分配请求中被优先查找和复用。</li>
+<li><strong>插入 bin</strong>  <ul>
+<li>合并或未合并的空闲 chunk 会被插入到所属 arena 的合适 bin 链表中，等待后续复用。</li>
 </ul>
 </li>
 </ol>
-<p><strong>流程示意：</strong></p>
-<ul>
-<li>用户释放内存 → 定位 chunk → 插入合适 bin → 合并相邻空闲块 → 等待复用</li>
+<h4 id="3-1-3-复用流程"><a href="#3-1-3-复用流程" class="headerlink" title="3.1.3 复用流程"></a>3.1.3 复用流程</h4><ul>
+<li>后续的 <code>malloc</code> 请求会优先复用 bin 链表中的空闲 chunk，提升分配效率，减少系统调用和内存碎片。</li>
 </ul>
-<p><strong>注意事项：</strong></p>
-<ul>
-<li>fastbin 释放时不会立即合并相邻 chunk，提升释放速度，但可能增加碎片。</li>
-<li>small bin、large bin 释放时会尝试合并，提升内存利用率。</li>
+<hr>
+<h3 id="3-2-bin-机制与分类管理"><a href="#3-2-bin-机制与分类管理" class="headerlink" title="3.2 bin 机制与分类管理"></a>3.2 bin 机制与分类管理</h3><h4 id="3-2-1-fastbin"><a href="#3-2-1-fastbin" class="headerlink" title="3.2.1 fastbin"></a>3.2.1 fastbin</h4><ul>
+<li>管理非常小的 chunk（如小于 64 字节）。</li>
+<li>释放和分配速度极快，但不立即合并相邻空闲 chunk，可能产生碎片。</li>
+<li>适合频繁分配和释放的小对象。</li>
 </ul>
-<p><strong>总结</strong>：<br>ptmalloc 通过将空闲 chunk 分类插入到不同的 bin，并在合适时机进行合并和复用，实现了高效的内存释放和管理。</p>
-<h4 id="多线程下，ptmalloc-使用-mmap-模拟堆申请内存的过程"><a href="#多线程下，ptmalloc-使用-mmap-模拟堆申请内存的过程" class="headerlink" title="多线程下，ptmalloc 使用 mmap 模拟堆申请内存的过程"></a>多线程下，ptmalloc 使用 mmap 模拟堆申请内存的过程</h4><p>在多线程环境下，ptmalloc 为了减少锁竞争、提升分配效率，会为不同线程分配多个独立的 arena（内存池）。每个 arena 需要有自己的堆空间。当主堆区（heap）空间不足或无法扩展时，ptmalloc 会通过 mmap 在虚拟内存的其他区域“模拟”出新的堆空间，具体过程如下：</p>
-<ol>
-<li><p><strong>检测主堆空间可用性</strong>  </p>
-<ul>
-<li>当新线程需要分配 arena 时，ptmalloc 首先尝试在主堆区（通过 brk&#x2F;sbrk）为该 arena 分配堆空间。</li>
+<h4 id="3-2-2-small-bin"><a href="#3-2-2-small-bin" class="headerlink" title="3.2.2 small bin"></a>3.2.2 small bin</h4><ul>
+<li>管理较小但大于 fastbin 的 chunk（如 64 字节到 512 字节）。</li>
+<li>支持合并相邻空闲 chunk，减少碎片。</li>
+<li>适合一般的小对象分配。</li>
 </ul>
-</li>
-<li><p><strong>主堆区无法扩展</strong>  </p>
-<ul>
-<li>如果主堆区由于地址空间碎片、资源限制等原因无法扩展，ptmalloc 会选择使用 mmap。</li>
+<h4 id="3-2-3-large-bin"><a href="#3-2-3-large-bin" class="headerlink" title="3.2.3 large bin"></a>3.2.3 large bin</h4><ul>
+<li>管理更大的 chunk（如大于 small bin 上限）。</li>
+<li>采用不同的查找和合并策略，适合大对象分配。</li>
 </ul>
-</li>
-<li><p><strong>通过 mmap 分配独立堆空间</strong>  </p>
-<ul>
-<li>ptmalloc 调用 mmap 系统调用，向操作系统申请一块新的虚拟内存区域，作为该 arena 的“模拟堆”。</li>
-<li>这块内存区域的管理方式与主堆类似，可以划分为多个 chunk，进行分配和释放。</li>
+<h4 id="3-2-4-unsorted-bin"><a href="#3-2-4-unsorted-bin" class="headerlink" title="3.2.4 unsorted bin"></a>3.2.4 unsorted bin</h4><ul>
+<li>刚释放或合并后的 chunk 会先进入 unsorted bin，作为临时缓冲区。</li>
+<li>后续分配或整理时会将 chunk 移动到 small bin 或 large bin。</li>
+<li>提高分配和回收效率。</li>
 </ul>
-</li>
-<li><p><strong>arena 内部 chunk 管理</strong>  </p>
-<ul>
-<li>在 mmap 分配的“模拟堆”中，chunk 的分配、释放、合并等操作与主堆区完全一致，依然通过 bin 机制进行管理。</li>
-<li>只有当整个 arena 不再被使用时，这块 mmap 区域才会整体通过 munmap 归还给操作系统。</li>
+<hr>
+<h3 id="3-3-chunk-的合并与碎片整理"><a href="#3-3-chunk-的合并与碎片整理" class="headerlink" title="3.3 chunk 的合并与碎片整理"></a>3.3 chunk 的合并与碎片整理</h3><h4 id="3-3-1-合并（coalesce）机制"><a href="#3-3-1-合并（coalesce）机制" class="headerlink" title="3.3.1 合并（coalesce）机制"></a>3.3.1 合并（coalesce）机制</h4><ul>
+<li>当释放 chunk 时，ptmalloc 会检查前后相邻 chunk 是否空闲。</li>
+<li>如果相邻 chunk 空闲，则立即合并，形成更大的空闲块，减少内存碎片。</li>
+<li>合并后的 chunk 会进入 unsorted bin，等待后续分配或整理。</li>
 </ul>
-</li>
-</ol>
-<p><strong>优点</strong>：  </p>
-<ul>
-<li>避免多线程争用同一个堆区，提高并发分配效率。</li>
-<li>灵活利用虚拟内存空间，提升大规模多线程程序的内存分配能力。</li>
+<h4 id="3-3-2-合并到-top-chunk"><a href="#3-3-2-合并到-top-chunk" class="headerlink" title="3.3.2 合并到 top chunk"></a>3.3.2 合并到 top chunk</h4><ul>
+<li>如果释放的 chunk 与 top chunk 相邻，ptmalloc 会将其合并进 top chunk，扩大未分配空间，便于后续大块分配或堆空间收缩。</li>
 </ul>
-<p><strong>总结</strong>：<br>多线程下，ptmalloc 会通过 mmap 为新 arena 分配独立的“模拟堆”空间，实现高效、低冲突的内存分配管理。</p>
-<h4 id="主堆区无法扩展的情况"><a href="#主堆区无法扩展的情况" class="headerlink" title="主堆区无法扩展的情况"></a>主堆区无法扩展的情况</h4><p>主堆区（heap）无法扩展，通常指 ptmalloc 不能通过 <code>brk</code>&#x2F;<code>sbrk</code> 系统调用向操作系统申请更多连续的堆空间。常见原因包括：</p>
-<ul>
-<li><p><strong>地址空间碎片</strong><br>堆区后面已经被其他内存映射（如 mmap 区、共享内存、动态库等）占用，导致无法获得一块足够大的连续空间扩展堆区。</p>
-</li>
-<li><p><strong>资源限制</strong><br>进程受限于系统资源（如 ulimit 限制、物理内存不足、虚拟内存耗尽等），无法再分配更多内存。</p>
-</li>
-<li><p><strong>堆区已达最大限制</strong><br>进程的堆区已经扩展到允许的最大地址，无法再向上扩展。</p>
-</li>
-<li><p><strong>多线程环境下的锁竞争或死锁</strong><br>虽然线程锁定（如 arena 锁）本身不会直接导致主堆区物理空间无法扩展，但如果主 arena 长时间被其他线程锁定，当前线程无法及时获得锁进行分配，也会导致分配器选择通过 mmap 分配新的 arena 或 chunk，从而“绕开”主堆区。</p>
-</li>
+<hr>
+<h3 id="3-4-bin-与-chunk-的关系"><a href="#3-4-bin-与-chunk-的关系" class="headerlink" title="3.4 bin 与 chunk 的关系"></a>3.4 bin 与 chunk 的关系</h3><ul>
+<li><strong>bin</strong> 是空闲 chunk 的分类链表，按 chunk 大小和用途分组管理。</li>
+<li><strong>chunk</strong> 是实际的内存块，空闲时被插入到所属 bin，分配后从 bin 移除。</li>
+<li>每个 arena 内部有独立的 bin 集合，管理本 arena 的所有空闲 chunk。</li>
+<li>bin 机制让 ptmalloc 能高效查找、复用和合并空闲 chunk，提升分配性能并减少碎片。</li>
 </ul>
-<p><strong>总结</strong>：<br>主堆区无法扩展的情况主要包括地址空间碎片、资源限制、堆区已达最大限制等。多线程下，主 arena 被锁定会影响分配效率，间接促使 ptmalloc 采用 mmap 分配新内存，但锁定本身不是物理空间无法扩展的直接原因。</p>
-<h4 id="多线程情况下，使用-mmap-管理相关-chunk"><a href="#多线程情况下，使用-mmap-管理相关-chunk" class="headerlink" title="多线程情况下，使用 mmap 管理相关 chunk"></a>多线程情况下，使用 mmap 管理相关 chunk</h4><p>在多线程环境下，ptmalloc 为了减少线程间的锁竞争，会为不同线程分配多个独立的 arena。每个 arena 需要有自己的堆空间。当主堆区（heap）空间不足或无法扩展时，ptmalloc 会通过 mmap 在虚拟内存的其他区域分配一块新的内存区域，作为该 arena 的“模拟堆”。</p>
-<p><strong>具体过程如下：</strong></p>
-<ol>
-<li><p><strong>分配 arena 时检测主堆区可用性</strong>  </p>
-<ul>
-<li>新线程需要 arena 时，ptmalloc 首先尝试通过 brk&#x2F;sbrk 在主堆区分配空间。</li>
-<li>如果主堆区无法扩展（如被其他映射占用、资源限制等），则使用 mmap 分配独立的堆空间。</li>
-</ul>
-</li>
-<li><p><strong>mmap 分配的堆空间管理 chunk</strong>  </p>
-<ul>
-<li>在 mmap 分配的区域内，ptmalloc 会像管理主堆区一样，将这块空间划分为多个 chunk。</li>
-<li>这些 chunk 的分配、释放、合并等操作与主堆区完全一致，依然通过 bin 机制进行管理。</li>
-</ul>
-</li>
-<li><p><strong>释放与回收</strong>  </p>
-<ul>
-<li>只有当整个 mmap 分配的 arena 完全空闲且没有线程再使用时，ptmalloc 才会通过 munmap 将这块内存归还给操作系统。</li>
-<li>单个 chunk 被释放时，只是进入 bin 链表，等待复用，不会立即 munmap。</li>
-</ul>
-</li>
-</ol>
-<p><strong>优点：</strong></p>
-<ul>
-<li>避免多线程争用同一个堆区，提高并发分配效率。</li>
-<li>灵活利用虚拟内存空间，提升多线程程序的内存分配能力。</li>
-</ul>
-<p><strong>总结：</strong><br>多线程下，ptmalloc 会通过 mmap 为新 arena 分配独立的“模拟堆”空间，arena 内部的 chunk 管理与主堆区一致，只有整个 arena 空闲时才会整体释放 mmap 区域。</p>
-<h4 id="什么时候-chunk-会合到-top-chunk-里？"><a href="#什么时候-chunk-会合到-top-chunk-里？" class="headerlink" title="什么时候 chunk 会合到 top chunk 里？"></a>什么时候 chunk 会合到 top chunk 里？</h4><ul>
-<li>当用户释放了位于堆顶（top chunk 紧邻）的 chunk 时，ptmalloc 会检测该 chunk 是否与 top chunk 相邻。</li>
-<li>如果相邻，ptmalloc 会将被释放的 chunk 与 top chunk 合并，形成一个更大的 top chunk。</li>
-<li>这样可以保证 top chunk 始终是堆区未分配的最大连续空闲块，便于后续分配和堆空间收缩。</li>
-</ul>
-<h4 id="mmap-的伪堆有几个？有几个-top-chunk？"><a href="#mmap-的伪堆有几个？有几个-top-chunk？" class="headerlink" title="mmap 的伪堆有几个？有几个 top chunk？"></a>mmap 的伪堆有几个？有几个 top chunk？</h4><ul>
-<li><p><strong>mmap 的伪堆有几个？</strong><br>多线程环境下，每当 ptmalloc 通过 mmap 为新的 arena 分配独立的“模拟堆”空间时，就会创建一个 mmap 伪堆。伪堆的数量取决于实际分配的 arena 数量（通常与并发线程数相关），理论上可以有多个。</p>
-</li>
-<li><p><strong>有几个 top chunk？</strong><br>每个 arena（无论是主堆区还是 mmap 伪堆）都有自己的 top chunk。  </p>
-<ul>
-<li>主 arena 有一个 top chunk。</li>
-<li>每个通过 mmap 分配的伪堆（arena）也有自己的 top chunk。</li>
-<li>所以，<strong>top chunk 的数量等于当前存在的 arena 数量</strong>。</li>
-</ul>
-</li>
-</ul>
+<hr>
+<h3 id="3-5-典型管理流程图示"><a href="#3-5-典型管理流程图示" class="headerlink" title="3.5 典型管理流程图示"></a>3.5 典型管理流程图示</h3><img  src=http://www.plantuml.com/plantuml/svg/fL7BJi905DtFLznb-mkTXTzIO1eQe3Jji75bKB146ub1yHKV2HfP0A862nY_XjkXAt_1AOCFq9sRoSov9-USUyRdfiU98LhtSV0oVzYM5oYPnM8vg_ds9jCfCLok09ZtRqI_3IaEE1ZZf2NETY1ZEo26KxpSeyIsG4lViwWNNpIm6IHRLSZcAqvXGmUUPmveySb09m061lMa5geXYEcfIa09A_eCD6pUfQnKZvVT9Mi-UiBErRhIGcjNoi4tKudJp-dVJW0hNf8PDxeuFCBhkkXEalQpbl4AEiJ1CPHAfal_wUNaR8keSxLkosDCSxcdg_uiq-Uomr-5nGU7MBk5vVZzTNyMXR9X78_MIZCKAiwZf3fTRFAe0j4VCXN7BtkSvTBler-nUWrygs4dbB4eyUME7m00>
+<hr>
 <p><strong>总结：</strong>  </p>
 <ul>
-<li>chunk 只有在与 top chunk 相邻时释放才会合并进 top chunk。</li>
-<li>每个 arena（无论主堆还是 mmap 伪堆）都有自己的 top chunk，arena 数量即 top chunk 数量。</li>
+<li>堆中的 chunk 通过 bin 分类管理，支持高效分配、释放和复用。</li>
+<li>合理的合并和碎片整理机制，保证了内存利用率和分配性能。</li>
+<li>多线程下，每个 arena 独立管理自己的 chunk 和 bin，互不干扰，进一步提升并发效率。</li>
 </ul>
+<h3 id="3-3-chunk-的释放与复用流程"><a href="#3-3-chunk-的释放与复用流程" class="headerlink" title="3.3 chunk 的释放与复用流程"></a>3.3 chunk 的释放与复用流程</h3><ol>
+<li>定位 chunk。</li>
+<li>检查状态，防止 double free。</li>
+<li>插入合适 bin。</li>
+<li>合并相邻空闲 chunk（非 fastbin）。</li>
+<li>等待复用。</li>
+</ol>
+<p><strong>注意</strong>：fastbin 不立即合并，small&#x2F;large bin 会合并。</p>
+<hr>
+<h2 id="第四章：arena-的介绍、分配与释放"><a href="#第四章：arena-的介绍、分配与释放" class="headerlink" title="第四章：arena 的介绍、分配与释放"></a>第四章：arena 的介绍、分配与释放</h2><h3 id="6-1-什么是-arena？"><a href="#6-1-什么是-arena？" class="headerlink" title="6.1 什么是 arena？"></a>6.1 什么是 arena？</h3><ul>
+<li><strong>arena</strong> 是 ptmalloc 内存分配器中的“内存池”概念。每个 arena 管理一块独立的堆空间（heap），拥有自己的 bin 集合和 top chunk。</li>
+<li>arena 的设计主要用于多线程环境，减少线程间的锁竞争，提高并发分配效率。</li>
+<li>每个线程分配内存时会优先使用本地 arena，只有在本地 arena 不可用时才会尝试其他 arena 或新建 arena。</li>
+</ul>
+<h3 id="6-2-arena-的数量"><a href="#6-2-arena-的数量" class="headerlink" title="6.2 arena 的数量"></a>6.2 arena 的数量</h3><ul>
+<li><strong>主 arena</strong>：每个进程启动时自动创建一个主 arena，管理主堆区（heap），所有单线程分配请求都在主 arena 上完成。</li>
+<li><strong>辅 arena</strong>：多线程环境下，为减少锁竞争，ptmalloc 会为新线程分配独立的辅 arena。辅 arena 的数量通常与 CPU 核心数相关（如 2 × CPU 核心数），也可通过环境变量 <code>MALLOC_ARENA_MAX</code> 控制最大数量。</li>
+<li><strong>每个 arena</strong> 都有独立的堆空间和 top chunk，互不影响。</li>
+</ul>
+<h3 id="6-3-arena-的分配与释放"><a href="#6-3-arena-的分配与释放" class="headerlink" title="6.3 arena 的分配与释放"></a>6.3 arena 的分配与释放</h3><ul>
+<li><strong>主 arena（brk&#x2F;sbrk）</strong>：主 arena 的堆空间只能通过收缩堆顶连续空间（降低 brk 指针）来释放，通常不会整体归还操作系统，除非进程退出。</li>
+<li><strong>辅 arena（mmap 或 brk&#x2F;sbrk）</strong>：<ul>
+<li>优先尝试用 brk&#x2F;sbrk 从主堆区切割空间，不足时用 mmap 分配独立堆空间。</li>
+<li>mmap 分配的辅 arena，当其所有 chunk 都空闲且无线程使用时，会整体通过 munmap 归还操作系统，实现真正的内存回收。</li>
+<li>辅 arena 只要还有 chunk 被占用或有线程在使用，就不会被释放。</li>
+</ul>
+</li>
+</ul>
+<h3 id="6-4-典型管理流程图"><a href="#6-4-典型管理流程图" class="headerlink" title="6.4 典型管理流程图"></a>6.4 典型管理流程图</h3><img  src=http://www.plantuml.com/plantuml/svg/TL3BJY915DttLzobhaOItJIBYMFYJXVg3vHD0PtkhYRTHJIk88x8ov54ZEy4ZJ7uY1sDCGWg7sDN5Qpc5wQWa46DcvkgUyuzvzphMoP98Gyv44kP49cQqFp_7Hn7QPikuLKwRPi9uc12mP05UoEiQSzpLvQIfc4HxFiG-GpDkBRhmIyR6TO8j80DYaZ2nhCkeOlc6eR8v0WyxyQ-GHoqEYTzK0BtiLvWYZogwPtsaQYNM2LWnVhVvpBB7x5MCsoq07cOeAYc3zyWRaz59IV_h9PZvMPKC-CmniuFHRCj9SIVW9sj_nm7ciG4nlX-CAu1wBpsnBTkkyUPpaMMvNFTZQtEwyQxE41FOgZ8jWDUk6HtkvzLfCwoP_tmPG6MtsI5Ut7PxEuzYDR11pLi-rX6gbmCXXm7fK2vYjADk2v9dsycISoCQwhgFDWE6rVlM_S7rUvW9DF4UijabqqYAtLJggDEeVYyaE771TM7ljbzsAZolPewK_ZI5jNwbpED9ZtyFOm6VFSXVDa19qrwXEvcaLTVezg7FNN53Didl3muiIW-yamsEjZ7bpd_0G00>
+
+<hr>
+<p><strong>总结：</strong>  </p>
+<ul>
+<li>arena 是 ptmalloc 的内存池结构，支持多线程高效分配。</li>
+<li>主 arena 只有一个，辅 arena 数量与并发线程数和系统配置相关。</li>
+<li>mmap 分配的辅 arena 在完全空闲时可以整体释放，主 arena 通常不会整体释放。</li>
+<li>每个 arena 独立管理自己的堆空间、bin 和 top chunk，互不干扰。</li>
+</ul>
+<h2 id="第五章：多线程与-arena、mmap-管理"><a href="#第五章：多线程与-arena、mmap-管理" class="headerlink" title="第五章：多线程与 arena、mmap 管理"></a>第五章：多线程与 arena、mmap 管理</h2><h3 id="4-1-多线程下的-arena-机制"><a href="#4-1-多线程下的-arena-机制" class="headerlink" title="4.1 多线程下的 arena 机制"></a>4.1 多线程下的 arena 机制</h3><ul>
+<li>在多线程环境下，ptmalloc 为了减少线程间的锁竞争，会为不同线程分配多个独立的 arena（内存池）。</li>
+<li>每个 arena 拥有独立的堆空间和 bin 集合，线程分配内存时会优先使用本地 arena，只有在本地 arena 不可用时才会尝试其他 arena 或新建 arena。</li>
+<li>主 arena 只有一个，辅 arena 数量与并发线程数相关（通常为 2 × CPU 核心数，可通过 <code>MALLOC_ARENA_MAX</code> 控制）。</li>
+</ul>
+<h4 id="4-1-1-arena-的分配与选择流程"><a href="#4-1-1-arena-的分配与选择流程" class="headerlink" title="4.1.1 arena 的分配与选择流程"></a>4.1.1 arena 的分配与选择流程</h4><ol>
+<li><strong>线程分配内存时</strong>，ptmalloc 首先查找是否有空闲的 arena。</li>
+<li>如果有空闲 arena，线程会锁定该 arena 并在其上进行分配。</li>
+<li>如果没有空闲 arena，且未达到最大 arena 数量，则分配新的 arena。</li>
+<li>新 arena 的堆空间优先通过 brk&#x2F;sbrk 从主堆区切割，不足时通过 mmap 分配独立的“模拟堆”空间。</li>
+</ol>
+<h3 id="4-2-mmap-分配-arena-的详细流程"><a href="#4-2-mmap-分配-arena-的详细流程" class="headerlink" title="4.2 mmap 分配 arena 的详细流程"></a>4.2 mmap 分配 arena 的详细流程</h3><ul>
+<li>当主堆区无法扩展（如被其他内存映射占用、空间不足或碎片化），ptmalloc 会通过 mmap 在虚拟内存的其他区域分配一块新的内存区域，作为该 arena 的“模拟堆”。</li>
+<li>mmap 分配的伪堆数量取决于实际分配的 arena 数量（通常与并发线程数相关）。</li>
+</ul>
+<h4 id="4-2-1-mmap-分配-arena-的步骤"><a href="#4-2-1-mmap-分配-arena-的步骤" class="headerlink" title="4.2.1 mmap 分配 arena 的步骤"></a>4.2.1 mmap 分配 arena 的步骤</h4><ol>
+<li><strong>检测主堆区可用性</strong>  <ul>
+<li>优先尝试通过 brk&#x2F;sbrk 在主堆区分配空间。</li>
+</ul>
+</li>
+<li><strong>主堆区无法扩展时</strong>  <ul>
+<li>调用 mmap 分配独立堆空间，作为新 arena 的堆区。</li>
+</ul>
+</li>
+<li><strong>在 mmap 区域内划分 chunk</strong>  <ul>
+<li>管理方式与主堆一致，chunk 的分配、释放、合并等操作依然通过 bin 机制进行管理。</li>
+</ul>
+</li>
+<li><strong>arena 的释放</strong>  <ul>
+<li>只有当整个 mmap 分配的 arena 完全空闲且没有线程再使用时，ptmalloc 才会通过 munmap 将这块内存归还给操作系统。</li>
+</ul>
+</li>
+</ol>
+<h3 id="4-3-多线程下的分配与释放特点"><a href="#4-3-多线程下的分配与释放特点" class="headerlink" title="4.3 多线程下的分配与释放特点"></a>4.3 多线程下的分配与释放特点</h3><ul>
+<li>每个线程优先使用自己的 arena，减少锁竞争，提高并发分配效率。</li>
+<li>不同 arena 之间的 chunk 和 bin 完全隔离，互不影响。</li>
+<li>mmap 分配的 arena 可以在完全空闲时整体释放，主 arena 只能收缩堆顶连续空间，通常不会整体释放。</li>
+</ul>
+<h3 id="4-4-多线程下的内存分配流程图"><a href="#4-4-多线程下的内存分配流程图" class="headerlink" title="4.4 多线程下的内存分配流程图"></a>4.4 多线程下的内存分配流程图</h3><img  src=http://www.plantuml.com/plantuml/svg/PP2zRi8m58LtFuL7cBed0yyIIX0822X9zuAKq10G7SAFK0Q6ga0B112YLP3Ib-7Q-2s8xNOeMUvmp_dEFRPbQwQD51h_qAL_ZRx8lWClBdC6u3gmcQgeMiOv4dfq5RF90MkcRcY5FBOhkf7kfr4UOQome0tRcHHLfDSj7UVWzPrh4l-u9Wa9d-5j8Jnaj6FTuNrC6YHFa_7kBujlUSJb-mnp5_en32FYhM0_oj8fNpHh3rOwVfymTqNjeypvrqlO6msj9QtKNzDF_numIjKooe0AtNYGEE2SBkUnwCcwFH8a79A8d0g4Io7phnHN7YjFHar5bjritG00>
+
+<h3 id="4-5-典型问题与注意事项"><a href="#4-5-典型问题与注意事项" class="headerlink" title="4.5 典型问题与注意事项"></a>4.5 典型问题与注意事项</h3><ul>
+<li><strong>arena 过多会导致内存碎片增加</strong>，但能显著提升多线程分配性能。</li>
+<li><strong>mmap 分配的 arena</strong> 在完全空闲时可以整体释放，主 arena 只能收缩堆顶连续空间。</li>
+<li><strong>线程退出后</strong>，其占用的 arena 可能被其他线程复用，也可能在完全空闲时被 munmap 释放。</li>
+</ul>
+<hr>
+<p><strong>总结：</strong><br>多线程下，ptmalloc 通过 arena 机制和 mmap 分配策略，实现了高效、低锁竞争的内存分配。每个 arena 独立管理自己的 chunk 和 bin，既提升了并发性能，也带来了更灵活的内存管理方式。</p>
+<h2 id="第六章：top-chunk-与-chunk-合并"><a href="#第六章：top-chunk-与-chunk-合并" class="headerlink" title="第六章：top chunk 与 chunk 合并"></a>第六章：top chunk 与 chunk 合并</h2><h3 id="5-1-top-chunk-概念"><a href="#5-1-top-chunk-概念" class="headerlink" title="5.1 top chunk 概念"></a>5.1 top chunk 概念</h3><ul>
+<li><strong>top chunk</strong> 是每个 arena（无论主堆还是 mmap 伪堆）中，位于堆空间最高地址处、尚未分配出去的最大连续空闲块。</li>
+<li>top chunk 不属于任何 bin，也不会被插入到 bin 链表中。</li>
+<li>分配新内存时，如果 bin 中没有合适的 chunk，ptmalloc 会优先从 top chunk 切分出一块空间分配给用户。</li>
+<li>如果 top chunk 空间不足，ptmalloc 会尝试扩展堆空间（brk&#x2F;sbrk 或 mmap），扩大 top chunk。</li>
+</ul>
+<h3 id="5-2-chunk-合并到-top-chunk-的时机与流程"><a href="#5-2-chunk-合并到-top-chunk-的时机与流程" class="headerlink" title="5.2 chunk 合并到 top chunk 的时机与流程"></a>5.2 chunk 合并到 top chunk 的时机与流程</h3><ul>
+<li>当用户释放的 chunk 与 top chunk 相邻（即释放 chunk 紧挨着 top chunk 的低地址），ptmalloc 会将该 chunk 与 top chunk 合并，形成更大的 top chunk。</li>
+<li>这样可以保证 top chunk 始终是堆区未分配的最大连续空闲块，便于后续大块分配或堆空间收缩。</li>
+</ul>
+<h4 id="合并到-top-chunk-的流程图"><a href="#合并到-top-chunk-的流程图" class="headerlink" title="合并到 top chunk 的流程图"></a>合并到 top chunk 的流程图</h4><img  src=http://www.plantuml.com/plantuml/svg/NOzBJeDW58NdhE8EOGimS2sqGaeAb03TW8O61yN6qDggzH4VQGTOeWP_2qqtyryUesv17ZLLPoSvzvpl7iiMJPlXCt-HkfzvU5eAa4r9OWtRv0I6DsnDLDLU6_3rYcw6qExqzQx0A3AmjGHAFB1xHcD0TasAa_Y80xiZwS2cqnN70F0uSl4hsj-W6nuIGcbNPOUAaaBN7juFYeU84Z_VtcPna2tNnUL77htZqrsjt_upAaeuprVZr8-oP5dccymkSOlPa6uyQ9bTIDq9Q7rT4urTSbQn9TMIWCNHoxxZrn_RUJQUuSq21mu6Kqg2-bu_LcJcJufFWqSa93s_GESPMefUKPh5vLHq8XfFcfz_9ZSbLidw1W00>
+
+<h3 id="5-3-top-chunk-的释放"><a href="#5-3-top-chunk-的释放" class="headerlink" title="5.3 top chunk 的释放"></a>5.3 top chunk 的释放</h3><ul>
+<li><p><strong>主 arena（brk&#x2F;sbrk）下的 top chunk</strong>  </p>
+<ul>
+<li>只有当 top chunk 位于堆顶且其下方空间全部空闲时，ptmalloc 才会尝试通过收缩堆（降低 brk 指针）将这部分空间归还给操作系统。</li>
+<li>如果 top chunk 下方还有已分配的 chunk，top chunk 只能保留在内存中，无法被释放。</li>
+</ul>
+</li>
+<li><p><strong>mmap 分配的 arena 下的 top chunk</strong>  </p>
+<ul>
+<li>当整个 mmap 分配的 arena（即该 mmap 区域内的所有 chunk，包括 top chunk）都空闲且没有线程再使用时，ptmalloc 会通过 munmap 将整个 mmap 区域（包括 top chunk）一次性归还给操作系统。</li>
+</ul>
+</li>
+</ul>
+<h3 id="5-4-典型场景说明"><a href="#5-4-典型场景说明" class="headerlink" title="5.4 典型场景说明"></a>5.4 典型场景说明</h3><ul>
+<li><strong>频繁分配和释放大块内存时</strong>，top chunk 的合并和收缩机制可以有效减少内存碎片，提升内存利用率。</li>
+<li><strong>多线程环境下</strong>，每个 arena 都有自己的 top chunk，互不影响。</li>
+</ul>
+<hr>
+<p><strong>总结：</strong>  </p>
+<ul>
+<li>top chunk 是每个 arena 中尚未分配的最大连续空闲块，分配和释放机制保证了堆空间的高效利用和动态收缩能力。</li>
+<li>合并到 top chunk 和堆空间收缩是减少内存碎片、提升系统性能的重要手段。</li>
+</ul>
+<blockquote>
+<p>有什么其他问题可以在评论中提问，我会将提出的问题收集下然后在附录中回答</p>
+</blockquote>
+<h2 id="附录：常见问题与总结"><a href="#附录：常见问题与总结" class="headerlink" title="附录：常见问题与总结"></a>附录：常见问题与总结</h2><ul>
+<li><strong>bin 结构和 chunk 地址是否连续？</strong><br>否，bin 是链表头或指针集合，chunk 分布在堆空间各处。</li>
+<li><strong>主 arena 大小是否固定？</strong><br>否，可动态扩展或收缩，受堆区高地址空间影响。</li>
+<li><strong>每个 arena 有几个 top chunk？</strong><br>每个 arena 一个 top chunk，arena 数量即 top chunk 数量。</li>
+<li><strong>chunk 释放后会立即归还操作系统吗？</strong><br>只有 mmap 分配的大块 chunk 或整个 mmap arena 空闲时才会 munmap，普通堆区 chunk 只是进入 bin 等待复用。</li>
+<li><strong>top chunk 会被释放吗？</strong><br>主 arena 的 top chunk 只有在堆顶连续空闲时才可能被释放，通常不会频繁归还操作系统。<br>mmap arena 的 top chunk 会随着整个 arena 的释放而被归还操作系统。</li>
+</ul>
+<hr>
 
   </div>
 </article>
@@ -470,7 +539,7 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#linux%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98"><span class="toc-number">1.</span> <span class="toc-text">linux虚拟内存</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0%EF%BC%9A%E8%BF%9B%E7%A8%8B%E7%9A%84%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.1.</span> <span class="toc-text">第一章：进程的虚拟内存布局</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9A%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84"><span class="toc-number">1.2.</span> <span class="toc-text">第二章：虚拟内存映射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E7%AE%80%E4%BB%8B"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. 虚拟内存映射简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%9F%A5%E8%AF%A2%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. 查询进程虚拟内存布局的方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.3.</span> <span class="toc-text">3. 示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%9Alibc-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">第三章：libc 内存管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-malloc-%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. malloc 的实现原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-1-chunk-%E7%AE%80%E4%BB%8B"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">1.1 chunk 简介</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#chunk-%E7%9A%84%E7%BB%93%E6%9E%84"><span class="toc-number">1.3.1.1.1.</span> <span class="toc-text">chunk 的结构</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#chunk-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">chunk 的作用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-malloc-%E7%94%B3%E8%AF%B7-chunk"><span class="toc-number">1.3.1.3.</span> <span class="toc-text">1.2 malloc 申请 chunk</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ptmalloc-%E7%94%B3%E8%AF%B7-chunk-%E7%9A%84%E6%96%B9%E5%BC%8F%EF%BC%88%E6%9B%B4%E5%87%86%E7%A1%AE%E8%AF%B4%E6%98%8E%EF%BC%89"><span class="toc-number">1.3.1.3.1.</span> <span class="toc-text">ptmalloc 申请 chunk 的方式（更准确说明）</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A0%86%E4%B8%AD-chunk-%E7%9A%84%E7%AE%A1%E7%90%86%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.1.4.</span> <span class="toc-text">堆中 chunk 的管理过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#bin-%E4%B8%8E-chunk-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.3.1.5.</span> <span class="toc-text">bin 与 chunk 的关系</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%9C%A8-bin-%E4%B8%AD%E6%89%BE%E5%88%B0%E5%AF%B9%E5%BA%94%E7%9A%84-chunk-%E5%B9%B6%E8%BF%9B%E8%A1%8C%E9%87%8A%E6%94%BE"><span class="toc-number">1.3.1.6.</span> <span class="toc-text">如何在 bin 中找到对应的 chunk 并进行释放</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%EF%BC%8Cptmalloc-%E4%BD%BF%E7%94%A8-mmap-%E6%A8%A1%E6%8B%9F%E5%A0%86%E7%94%B3%E8%AF%B7%E5%86%85%E5%AD%98%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.1.7.</span> <span class="toc-text">多线程下，ptmalloc 使用 mmap 模拟堆申请内存的过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E5%A0%86%E5%8C%BA%E6%97%A0%E6%B3%95%E6%89%A9%E5%B1%95%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-number">1.3.1.8.</span> <span class="toc-text">主堆区无法扩展的情况</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%83%85%E5%86%B5%E4%B8%8B%EF%BC%8C%E4%BD%BF%E7%94%A8-mmap-%E7%AE%A1%E7%90%86%E7%9B%B8%E5%85%B3-chunk"><span class="toc-number">1.3.1.9.</span> <span class="toc-text">多线程情况下，使用 mmap 管理相关 chunk</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99-chunk-%E4%BC%9A%E5%90%88%E5%88%B0-top-chunk-%E9%87%8C%EF%BC%9F"><span class="toc-number">1.3.1.10.</span> <span class="toc-text">什么时候 chunk 会合到 top chunk 里？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#mmap-%E7%9A%84%E4%BC%AA%E5%A0%86%E6%9C%89%E5%87%A0%E4%B8%AA%EF%BC%9F%E6%9C%89%E5%87%A0%E4%B8%AA-top-chunk%EF%BC%9F"><span class="toc-number">1.3.1.11.</span> <span class="toc-text">mmap 的伪堆有几个？有几个 top chunk？</span></a></li></ol></li></ol></li></ol></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0%EF%BC%9A%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.</span> <span class="toc-text">第一章：进程虚拟内存布局</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%86%E5%8C%BA"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 虚拟地址空间分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E7%AE%80%E4%BB%8B"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 虚拟内存映射简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%9F%A5%E8%AF%A2%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 查询进程虚拟内存布局</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9Alibc-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E-ptmalloc"><span class="toc-number">2.</span> <span class="toc-text">第二章：libc 内存管理与 ptmalloc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-chunk-%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 chunk 结构详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-chunk%E3%80%81bin-%E4%B8%8E-arena-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 chunk、bin 与 arena 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-chunk-%E7%94%B3%E8%AF%B7%E4%B8%8E-bin-%E7%9A%84%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 chunk 申请与 bin 的对应关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%85%B8%E5%9E%8B%E5%88%86%E9%85%8D%E4%B8%8E%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B%E7%A4%BA%E6%84%8F"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 典型分配与管理流程示意</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-arena-%E7%9A%84%E7%94%B3%E8%AF%B7%E4%B8%8E%E5%88%86%E9%85%8D"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 arena 的申请与分配</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-1-%E4%B8%BB-arena-%E7%9A%84%E5%88%9B%E5%BB%BA"><span class="toc-number">2.5.1.</span> <span class="toc-text">2.5.1 主 arena 的创建</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-2-%E8%BE%85%E5%8A%A9-arena-%E7%9A%84%E7%94%B3%E8%AF%B7"><span class="toc-number">2.5.2.</span> <span class="toc-text">2.5.2 辅助 arena 的申请</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-3-%E8%BE%85%E5%8A%A9-arena-%E7%9A%84%E5%86%85%E5%AD%98%E6%9D%A5%E6%BA%90"><span class="toc-number">2.5.3.</span> <span class="toc-text">2.5.3 辅助 arena 的内存来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-4-arena-%E7%9A%84%E9%87%8A%E6%94%BE"><span class="toc-number">2.5.4.</span> <span class="toc-text">2.5.4 arena 的释放</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%AB%A0%EF%BC%9A%E5%A0%86%E4%B8%8E-arena-%E7%AE%A1%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">第三章：堆与 arena 管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%A0%86%E4%B8%AD-chunk-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 堆中 chunk 的生命周期与管理流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-1-%E5%88%86%E9%85%8D%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1.1 分配流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-2-%E9%87%8A%E6%94%BE%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.2.</span> <span class="toc-text">3.1.2 释放流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-3-%E5%A4%8D%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.3.</span> <span class="toc-text">3.1.3 复用流程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-bin-%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%88%86%E7%B1%BB%E7%AE%A1%E7%90%86"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 bin 机制与分类管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-1-fastbin"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.2.1 fastbin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-2-small-bin"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2.2 small bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-3-large-bin"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.2.3 large bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-4-unsorted-bin"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.2.4 unsorted bin</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-chunk-%E7%9A%84%E5%90%88%E5%B9%B6%E4%B8%8E%E7%A2%8E%E7%89%87%E6%95%B4%E7%90%86"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 chunk 的合并与碎片整理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-1-%E5%90%88%E5%B9%B6%EF%BC%88coalesce%EF%BC%89%E6%9C%BA%E5%88%B6"><span class="toc-number">3.3.1.</span> <span class="toc-text">3.3.1 合并（coalesce）机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-2-%E5%90%88%E5%B9%B6%E5%88%B0-top-chunk"><span class="toc-number">3.3.2.</span> <span class="toc-text">3.3.2 合并到 top chunk</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-bin-%E4%B8%8E-chunk-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 bin 与 chunk 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%85%B8%E5%9E%8B%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B%E5%9B%BE%E7%A4%BA"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 典型管理流程图示</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-chunk-%E7%9A%84%E9%87%8A%E6%94%BE%E4%B8%8E%E5%A4%8D%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">3.6.</span> <span class="toc-text">3.3 chunk 的释放与复用流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E7%AB%A0%EF%BC%9Aarena-%E7%9A%84%E4%BB%8B%E7%BB%8D%E3%80%81%E5%88%86%E9%85%8D%E4%B8%8E%E9%87%8A%E6%94%BE"><span class="toc-number">4.</span> <span class="toc-text">第四章：arena 的介绍、分配与释放</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%BB%80%E4%B9%88%E6%98%AF-arena%EF%BC%9F"><span class="toc-number">4.1.</span> <span class="toc-text">6.1 什么是 arena？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-arena-%E7%9A%84%E6%95%B0%E9%87%8F"><span class="toc-number">4.2.</span> <span class="toc-text">6.2 arena 的数量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-arena-%E7%9A%84%E5%88%86%E9%85%8D%E4%B8%8E%E9%87%8A%E6%94%BE"><span class="toc-number">4.3.</span> <span class="toc-text">6.3 arena 的分配与释放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%85%B8%E5%9E%8B%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">4.4.</span> <span class="toc-text">6.4 典型管理流程图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E7%AB%A0%EF%BC%9A%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8E-arena%E3%80%81mmap-%E7%AE%A1%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">第五章：多线程与 arena、mmap 管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84-arena-%E6%9C%BA%E5%88%B6"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 多线程下的 arena 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-arena-%E7%9A%84%E5%88%86%E9%85%8D%E4%B8%8E%E9%80%89%E6%8B%A9%E6%B5%81%E7%A8%8B"><span class="toc-number">5.1.1.</span> <span class="toc-text">4.1.1 arena 的分配与选择流程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-mmap-%E5%88%86%E9%85%8D-arena-%E7%9A%84%E8%AF%A6%E7%BB%86%E6%B5%81%E7%A8%8B"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 mmap 分配 arena 的详细流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-mmap-%E5%88%86%E9%85%8D-arena-%E7%9A%84%E6%AD%A5%E9%AA%A4"><span class="toc-number">5.2.1.</span> <span class="toc-text">4.2.1 mmap 分配 arena 的步骤</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84%E5%88%86%E9%85%8D%E4%B8%8E%E9%87%8A%E6%94%BE%E7%89%B9%E7%82%B9"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 多线程下的分配与释放特点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 多线程下的内存分配流程图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E5%85%B8%E5%9E%8B%E9%97%AE%E9%A2%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">5.5.</span> <span class="toc-text">4.5 典型问题与注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E7%AB%A0%EF%BC%9Atop-chunk-%E4%B8%8E-chunk-%E5%90%88%E5%B9%B6"><span class="toc-number">6.</span> <span class="toc-text">第六章：top chunk 与 chunk 合并</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-top-chunk-%E6%A6%82%E5%BF%B5"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 top chunk 概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-chunk-%E5%90%88%E5%B9%B6%E5%88%B0-top-chunk-%E7%9A%84%E6%97%B6%E6%9C%BA%E4%B8%8E%E6%B5%81%E7%A8%8B"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 chunk 合并到 top chunk 的时机与流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E5%88%B0-top-chunk-%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">6.2.1.</span> <span class="toc-text">合并到 top chunk 的流程图</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-top-chunk-%E7%9A%84%E9%87%8A%E6%94%BE"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 top chunk 的释放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF%E8%AF%B4%E6%98%8E"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 典型场景说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">附录：常见问题与总结</span></a></li></ol>
       </div>
     
 
