@@ -1,72 +1,142 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset
-    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-       http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
->
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
 
 <url>
- <loc>https://hellowbai.github.io/</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
+  <loc>https://hellowbai.github.io/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/about/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/archives/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/2025/05/17/libc%20Virtual%20Memory%20Management/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/2024/12/22/web3-0/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/2024/01/29/go-leaning/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/2023/11/12/commands/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/2023/07/29/heap/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/malloc/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/memory-fragmentation/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/memory-leak/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/memory-management/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/virtual-memory/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/%E5%86%85%E5%AD%98%E7%A2%8E%E7%89%87/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/web3-0/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/categories/go/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/go/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/commands/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/categories/os/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/categories/os/memory/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/memory/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://hellowbai.github.io/tags/os/</loc>
+  <lastmod>2025-05-19T13:32:44+00:00</lastmod>
+  <priority>0.51</priority>
 </url>
 
-<url>
- <loc>https://hellowbai.github.io/about</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
-</url>
-
-<url>
- <loc>https://hellowbai.github.io/archives</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
-</url>
-
-<url>
- <loc>https://hellowbai.github.io/null</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
-</url>
-
-<url>
- <loc>https://hellowbai.github.io/2025/05/17/libc%20Virtual%20Memory%20Management</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
-</url>
-
-<url>
- <loc>https://hellowbai.github.io/2025/05/17/libc%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
-</url>
-
-<url>
- <loc>https://hellowbai.github.io/2024/12/22/web3-0</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
-</url>
-
-<url>
- <loc>https://hellowbai.github.io/2024/01/29/go-leaning</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
-</url>
-
-<url>
- <loc>https://hellowbai.github.io/2023/11/12/commands</loc>
- <priority>0.3</priority>
- <lastmod>2025-05-18</lastmod>
- <changefreq>yearly</changefreq>
-</url>
 
 </urlset>
