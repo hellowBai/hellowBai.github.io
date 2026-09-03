@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="重点常用的架构风格：常用的5个架构风格：  调用返回风格  包含： 面向对象风格， 分层风格， 主程序子程序风格  数据流风格  包含： 管道-过滤风格， 批处理风格  独立构件风格  包含： 隐式调用风格（事件调用， c2） ，进程通信  虚拟机风格  包含： 解释器风格， 基于规则的系统    仓库风格  包含： 黑板风格，  数据库风格， 超文本风格 风格对比   所属风格 子风格 性能 可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="架构风格">
+<meta property="og:url" content="http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/index.html">
+<meta property="og:site_name" content="Patton&#39;s Blog">
+<meta property="og:description" content="重点常用的架构风格：常用的5个架构风格：  调用返回风格  包含： 面向对象风格， 分层风格， 主程序子程序风格  数据流风格  包含： 管道-过滤风格， 批处理风格  独立构件风格  包含： 隐式调用风格（事件调用， c2） ，进程通信  虚拟机风格  包含： 解释器风格， 基于规则的系统    仓库风格  包含： 黑板风格，  数据库风格， 超文本风格 风格对比   所属风格 子风格 性能 可">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-23T10:05:18.000Z">
+<meta property="article:modified_time" content="2026-09-03T16:43:22.611Z">
+<meta property="article:author" content="Allen">
+<meta property="article:tag" content="系统架构">
+<meta property="article:tag" content="软考高级">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>架构风格</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H66MKW7BL6"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-H66MKW7BL6');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2026/08/19/%E8%B4%A8%E9%87%8F%E5%B1%9E%E6%80%A7/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&text=架构风格"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&is_video=false&description=架构风格"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=架构风格&body=Check out this article: http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&name=架构风格&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&t=架构风格"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%87%8D%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">重点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">常用的架构风格：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A3%8E%E6%A0%BC%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">风格对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E4%BB%B6%E5%92%8C%E8%BF%9E%E9%80%9A%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">组件和连通器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%80%83%E8%AF%95%E6%96%B9%E5%90%91"><span class="toc-number">2.</span> <span class="toc-text">考试方向</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        架构风格
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Allen</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2026-08-23T10:05:18.000Z" class="dt-published" itemprop="datePublished">2026-08-23</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84/" rel="tag">系统架构</a>, <a class="p-category" href="/tags/%E8%BD%AF%E8%80%83%E9%AB%98%E7%BA%A7/" rel="tag">软考高级</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="重点"><a href="#重点" class="headerlink" title="重点"></a>重点</h1><h2 id="常用的架构风格："><a href="#常用的架构风格：" class="headerlink" title="常用的架构风格："></a>常用的架构风格：</h2><p>常用的5个架构风格：</p>
+<ol>
+<li>调用返回风格</li>
+</ol>
+<p>包含： 面向对象风格， 分层风格， 主程序子程序风格</p>
+<ol start="2">
+<li>数据流风格</li>
+</ol>
+<p>包含： 管道-过滤风格， 批处理风格</p>
+<ol start="3">
+<li>独立构件风格</li>
+</ol>
+<p>包含： 隐式调用风格（事件调用， c2） ，进程通信</p>
+<ol start="4">
+<li>虚拟机风格</li>
+</ol>
+<p>包含： 解释器风格， 基于规则的系统  </p>
+<ol start="5">
+<li>仓库风格</li>
+</ol>
+<p>包含： 黑板风格，  数据库风格， 超文本风格</p>
+<h2 id="风格对比"><a href="#风格对比" class="headerlink" title="风格对比"></a>风格对比</h2><table>
+<thead>
+<tr>
+<th>所属风格</th>
+<th>子风格</th>
+<th>性能</th>
+<th>可修改性</th>
+<th>可扩展性</th>
+<th>可复用性</th>
+<th>可测试性</th>
+<th>可维护性</th>
+<th>安全性</th>
+<th>一句话定位</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>调用返回</td>
+<td>分层</td>
+<td>中</td>
+<td>强</td>
+<td>强</td>
+<td>中</td>
+<td>强</td>
+<td>强</td>
+<td>中</td>
+<td>层次清晰、单向依赖，如三层架构</td>
+</tr>
+<tr>
+<td>调用返回</td>
+<td>面向对象</td>
+<td>中</td>
+<td>强</td>
+<td>强</td>
+<td>强</td>
+<td>中</td>
+<td>强</td>
+<td>中</td>
+<td>封装&#x2F;继承&#x2F;多态，数据+行为内聚</td>
+</tr>
+<tr>
+<td>调用返回</td>
+<td>主程序-子程序</td>
+<td>强</td>
+<td>中</td>
+<td>弱</td>
+<td>中</td>
+<td>中</td>
+<td>弱</td>
+<td>中</td>
+<td>直接调用、最简单，适合中小程序</td>
+</tr>
+<tr>
+<td>数据流</td>
+<td>管道-过滤</td>
+<td>弱</td>
+<td>强</td>
+<td>强</td>
+<td>强</td>
+<td>强</td>
+<td>强</td>
+<td>中</td>
+<td>数据单向流动，过滤器可插拔（前提：接口稳定）</td>
+</tr>
+<tr>
+<td>数据流</td>
+<td>批处理</td>
+<td>中</td>
+<td>弱</td>
+<td>弱</td>
+<td>弱</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>整批一次性处理，流程固定、灵活性差</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>隐式调用(事件)</td>
+<td>中</td>
+<td>强</td>
+<td>强</td>
+<td>强</td>
+<td>弱</td>
+<td>弱</td>
+<td>弱</td>
+<td>发布-订阅解耦最强，但调用链不透明</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>C2</td>
+<td>中</td>
+<td>强</td>
+<td>强</td>
+<td>强</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>分层+事件结合，顶层请求&#x2F;底层通知</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>进程通信</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>强</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>消息传递、分布式解耦</td>
+</tr>
+<tr>
+<td>虚拟机</td>
+<td>解释器</td>
+<td>弱</td>
+<td>强</td>
+<td>强</td>
+<td>强</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>程序+解释器，可移植</td>
+</tr>
+<tr>
+<td>虚拟机</td>
+<td>基于规则</td>
+<td>弱</td>
+<td>强</td>
+<td>强</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>规则库+推理机，专家系统</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>黑板</td>
+<td>弱</td>
+<td>中</td>
+<td>强</td>
+<td>强</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>多知识源协同，无确定算法</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>数据库</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>强</td>
+<td>强</td>
+<td>强</td>
+<td>数据集中、事务、一致性</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>超文本</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+<td>节点+链接网状结构</td>
+</tr>
+</tbody></table>
+<h2 id="组件和连通器"><a href="#组件和连通器" class="headerlink" title="组件和连通器"></a>组件和连通器</h2><table>
+<thead>
+<tr>
+<th>所属风格</th>
+<th>子风格</th>
+<th>构件（组件）</th>
+<th>连接件（连接器）</th>
+<th>约束&#x2F;拓扑要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>调用返回</td>
+<td>分层</td>
+<td>各层中的模块&#x2F;服务（表现层、业务层、数据层等）</td>
+<td>层间接口调用（过程调用）</td>
+<td>单向依赖、上层调用下层，层间解耦</td>
+</tr>
+<tr>
+<td>调用返回</td>
+<td>面向对象</td>
+<td>对象 &#x2F; 类（封装数据+方法）</td>
+<td>方法调用（消息传递）</td>
+<td>对象间通过方法调用交互，靠封装&#x2F;多态</td>
+</tr>
+<tr>
+<td>调用返回</td>
+<td>主程序-子程序</td>
+<td>主程序 + 子程序&#x2F;过程</td>
+<td>子程序调用（过程调用&#x2F;返回）</td>
+<td>主程序集中控制调用流程</td>
+</tr>
+<tr>
+<td>数据流</td>
+<td>管道-过滤</td>
+<td>过滤器（Filter，独立处理单元）</td>
+<td>管道（Pipe，数据传递通道）</td>
+<td>数据单向流动，过滤器独立可插拔</td>
+</tr>
+<tr>
+<td>数据流</td>
+<td>批处理</td>
+<td>各处理步骤程序</td>
+<td>顺序文件&#x2F;批次传递</td>
+<td>整批一次性顺序执行，流程固定</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>隐式调用(事件)</td>
+<td>发布者 &#x2F; 订阅者（对象、构件）</td>
+<td>事件触发 &#x2F; 事件广播（事件总线）</td>
+<td>间接调用、订阅-发布解耦</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>C2</td>
+<td>构件（Component，层次化组件）</td>
+<td>连接件（Connector，消息传递：request向上、notification向下）</td>
+<td>严格分层 + 事件机制结合</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>进程通信</td>
+<td>进程（独立运行实体）</td>
+<td>消息传递 &#x2F; RPC &#x2F; 套接字 &#x2F; 共享内存</td>
+<td>分布式、进程间异步通信</td>
+</tr>
+<tr>
+<td>虚拟机</td>
+<td>解释器</td>
+<td>解释器引擎 + 被解释程序（指令&#x2F;脚本）+ 运行状态</td>
+<td>解释执行 &#x2F; 指令调用</td>
+<td>解释器逐条解析执行程序</td>
+</tr>
+<tr>
+<td>虚拟机</td>
+<td>基于规则</td>
+<td>规则库 + 推理机（规则解释器）+ 事实&#x2F;工作存储</td>
+<td>规则匹配 &#x2F; 规则触发</td>
+<td>规则匹配-执行循环（专家系统）</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>黑板</td>
+<td>黑板（中央数据结构）+ 知识源(KS) + 黑板控制器</td>
+<td>黑板读写、控制触发</td>
+<td>多知识源共享黑板、机会主义调度</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>数据库</td>
+<td>中央数据库 + 独立访问&#x2F;数据处理程序</td>
+<td>数据库访问（SQL 查询&#x2F;读写）</td>
+<td>数据集中管理、事务、一致性</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>超文本</td>
+<td>节点（文档&#x2F;内容单元）</td>
+<td>链接（超链接 Hyperlink）</td>
+<td>节点网状组织，链接导航</td>
+</tr>
+</tbody></table>
+<h1 id="考试方向"><a href="#考试方向" class="headerlink" title="考试方向"></a>考试方向</h1><p>主要是给个场景，让你选择架构，并且告诉为什么选这个架构， 个别架构考怎么设计， 连接器和构件是什么</p>
+
+  </div>
+</article>
+
+
+    <div class="blog-post-comments">
+        <div id="utterances_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%87%8D%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">重点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">常用的架构风格：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A3%8E%E6%A0%BC%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">风格对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E4%BB%B6%E5%92%8C%E8%BF%9E%E9%80%9A%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">组件和连通器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%80%83%E8%AF%95%E6%96%B9%E5%90%91"><span class="toc-number">2.</span> <span class="toc-text">考试方向</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&text=架构风格"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&is_video=false&description=架构风格"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=架构风格&body=Check out this article: http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&title=架构风格"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&name=架构风格&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/&t=架构风格"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Allen
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/hellowBai">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+    <script type="text/javascript">
+      var utterances_repo = 'hellowBai/comments_server';
+      var utterances_issue_term = 'comments_path';
+      var utterances_label = 'Comment';
+      var utterances_theme = 'github-light';
+
+      (function(){
+          var script = document.createElement('script');
+
+          script.src = 'https://utteranc.es/client.js';
+          script.setAttribute('repo', utterances_repo);
+          script.setAttribute('issue-term', 'pathname');
+          script.setAttribute('label', utterances_label);
+          script.setAttribute('theme', utterances_theme);
+          script.setAttribute('crossorigin', 'anonymous');
+          script.async = true;
+          (document.getElementById('utterances_thread')).appendChild(script);
+      }());
+  </script>
+
+</body>
+</html>
