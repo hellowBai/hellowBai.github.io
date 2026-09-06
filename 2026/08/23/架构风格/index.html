@@ -6,15 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="重点常用的架构风格：常用的5个架构风格：  调用返回风格  包含： 面向对象风格， 分层风格， 主程序子程序风格  数据流风格  包含： 管道-过滤风格， 批处理风格  独立构件风格  包含： 隐式调用风格（事件调用， c2） ，进程通信  虚拟机风格  包含： 解释器风格， 基于规则的系统    仓库风格  包含： 黑板风格，  数据库风格， 超文本风格 风格对比   所属风格 子风格 性能 可">
+    <meta name="description" content="重点一、五大架构风格总览常用 5 个架构风格：  调用返回风格：面向对象、分层、主程序-子程序 数据流风格：管道-过滤、批处理 独立构件风格：隐式调用（事件&#x2F;C2）、进程通信 虚拟机风格：解释器、基于规则的系统 仓库风格：黑板、数据库、超文本   架构风格三要素：构件（Component，功能单元）+ 连接件（Connector，交互机制）+ 约束&#x2F;拓扑。选型本质 &#x3D;">
 <meta property="og:type" content="article">
 <meta property="og:title" content="架构风格">
 <meta property="og:url" content="http://hellowbai.github/2026/08/23/%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC/index.html">
 <meta property="og:site_name" content="Patton&#39;s Blog">
-<meta property="og:description" content="重点常用的架构风格：常用的5个架构风格：  调用返回风格  包含： 面向对象风格， 分层风格， 主程序子程序风格  数据流风格  包含： 管道-过滤风格， 批处理风格  独立构件风格  包含： 隐式调用风格（事件调用， c2） ，进程通信  虚拟机风格  包含： 解释器风格， 基于规则的系统    仓库风格  包含： 黑板风格，  数据库风格， 超文本风格 风格对比   所属风格 子风格 性能 可">
+<meta property="og:description" content="重点一、五大架构风格总览常用 5 个架构风格：  调用返回风格：面向对象、分层、主程序-子程序 数据流风格：管道-过滤、批处理 独立构件风格：隐式调用（事件&#x2F;C2）、进程通信 虚拟机风格：解释器、基于规则的系统 仓库风格：黑板、数据库、超文本   架构风格三要素：构件（Component，功能单元）+ 连接件（Connector，交互机制）+ 约束&#x2F;拓扑。选型本质 &#x3D;">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-08-23T10:05:18.000Z">
-<meta property="article:modified_time" content="2026-09-03T16:43:22.611Z">
+<meta property="article:modified_time" content="2026-09-06T07:47:53.143Z">
 <meta property="article:author" content="Allen">
 <meta property="article:tag" content="系统架构">
 <meta property="article:tag" content="软考高级">
@@ -122,7 +122,7 @@
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%87%8D%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">重点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">常用的架构风格：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A3%8E%E6%A0%BC%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">风格对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E4%BB%B6%E5%92%8C%E8%BF%9E%E9%80%9A%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">组件和连通器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%80%83%E8%AF%95%E6%96%B9%E5%90%91"><span class="toc-number">2.</span> <span class="toc-text">考试方向</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%87%8D%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">重点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BA%94%E5%A4%A7%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC%E6%80%BB%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">一、五大架构风格总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E9%A3%8E%E6%A0%BC%E5%AF%B9%E6%AF%94%EF%BC%88%E8%B4%A8%E9%87%8F%E5%B1%9E%E6%80%A7%E7%9F%A9%E9%98%B5%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">二、风格对比（质量属性矩阵）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%9E%84%E4%BB%B6%E4%B8%8E%E8%BF%9E%E6%8E%A5%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">三、构件与连接件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.4.</span> <span class="toc-text">四、典型应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%98%93%E6%B7%B7%E7%82%B9%E8%BE%A8%E6%9E%90%EF%BC%88%E8%BD%AF%E8%80%83%E6%9C%80%E7%88%B1%E6%8C%96%E5%9D%91%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">五、易混点辨析（软考最爱挖坑）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%EF%BC%9A%E9%9C%80%E6%B1%82-%E2%86%92-%E9%A3%8E%E6%A0%BC%E6%98%A0%E5%B0%84"><span class="toc-number">1.6.</span> <span class="toc-text">六、选型决策：需求 → 风格映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E8%80%83%E8%AF%95%E6%96%B9%E5%90%91%E4%B8%8E%E7%AD%94%E9%A2%98%E6%A8%A1%E6%9D%BF"><span class="toc-number">1.7.</span> <span class="toc-text">七、考试方向与答题模板</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%B0%E5%BF%86%E5%8F%A3%E8%AF%80"><span class="toc-number">2.</span> <span class="toc-text">记忆口诀</span></a></li></ol>
       </div>
     
   </span>
@@ -167,28 +167,18 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <h1 id="重点"><a href="#重点" class="headerlink" title="重点"></a>重点</h1><h2 id="常用的架构风格："><a href="#常用的架构风格：" class="headerlink" title="常用的架构风格："></a>常用的架构风格：</h2><p>常用的5个架构风格：</p>
+    <h1 id="重点"><a href="#重点" class="headerlink" title="重点"></a>重点</h1><h2 id="一、五大架构风格总览"><a href="#一、五大架构风格总览" class="headerlink" title="一、五大架构风格总览"></a>一、五大架构风格总览</h2><p>常用 5 个架构风格：</p>
 <ol>
-<li>调用返回风格</li>
+<li><strong>调用返回风格</strong>：面向对象、分层、主程序-子程序</li>
+<li><strong>数据流风格</strong>：管道-过滤、批处理</li>
+<li><strong>独立构件风格</strong>：隐式调用（事件&#x2F;C2）、进程通信</li>
+<li><strong>虚拟机风格</strong>：解释器、基于规则的系统</li>
+<li><strong>仓库风格</strong>：黑板、数据库、超文本</li>
 </ol>
-<p>包含： 面向对象风格， 分层风格， 主程序子程序风格</p>
-<ol start="2">
-<li>数据流风格</li>
-</ol>
-<p>包含： 管道-过滤风格， 批处理风格</p>
-<ol start="3">
-<li>独立构件风格</li>
-</ol>
-<p>包含： 隐式调用风格（事件调用， c2） ，进程通信</p>
-<ol start="4">
-<li>虚拟机风格</li>
-</ol>
-<p>包含： 解释器风格， 基于规则的系统  </p>
-<ol start="5">
-<li>仓库风格</li>
-</ol>
-<p>包含： 黑板风格，  数据库风格， 超文本风格</p>
-<h2 id="风格对比"><a href="#风格对比" class="headerlink" title="风格对比"></a>风格对比</h2><table>
+<blockquote>
+<p>架构风格三要素：<strong>构件（Component，功能单元）+ 连接件（Connector，交互机制）+ 约束&#x2F;拓扑</strong>。<br>选型本质 &#x3D; 质量属性权衡，没有”最好”，只有”某个质量属性上更有优势”。</p>
+</blockquote>
+<h2 id="二、风格对比（质量属性矩阵）"><a href="#二、风格对比（质量属性矩阵）" class="headerlink" title="二、风格对比（质量属性矩阵）"></a>二、风格对比（质量属性矩阵）</h2><table>
 <thead>
 <tr>
 <th>所属风格</th>
@@ -285,7 +275,7 @@
 <td>中</td>
 <td>中</td>
 <td>中</td>
-<td>分层+事件结合，顶层请求&#x2F;底层通知</td>
+<td>分层+事件结合，请求向下&#x2F;通知向上</td>
 </tr>
 <tr>
 <td>独立构件</td>
@@ -360,7 +350,14 @@
 <td>节点+链接网状结构</td>
 </tr>
 </tbody></table>
-<h2 id="组件和连通器"><a href="#组件和连通器" class="headerlink" title="组件和连通器"></a>组件和连通器</h2><table>
+<p><strong>矩阵速记规律：</strong></p>
+<ul>
+<li>性能两级分化：唯一”强”是主程序-子程序；”弱”扎堆在管道、解释器、基于规则、黑板（共同点：运行时多一层间接）。</li>
+<li>可扩展性：绝大多数强，只有主程序-子程序、批处理弱（流程写死）。</li>
+<li>可测试&#x2F;可维护&#x2F;安全最差：隐式调用（调用链不透明）。</li>
+<li>安全性最强：数据库（事务&#x2F;权限&#x2F;一致性）。</li>
+</ul>
+<h2 id="三、构件与连接件"><a href="#三、构件与连接件" class="headerlink" title="三、构件与连接件"></a>三、构件与连接件</h2><table>
 <thead>
 <tr>
 <th>所属风格</th>
@@ -416,8 +413,8 @@
 <td>独立构件</td>
 <td>C2</td>
 <td>构件（Component，层次化组件）</td>
-<td>连接件（Connector，消息传递：request向上、notification向下）</td>
-<td>严格分层 + 事件机制结合</td>
+<td>连接件（Connector，消息传递）</td>
+<td><strong>request 向下（上层请求下层）、notification 向上（下层通知上层）</strong>；只能上下相邻层经连接件通信，不能越层&#x2F;同层直连</td>
 </tr>
 <tr>
 <td>独立构件</td>
@@ -462,7 +459,213 @@
 <td>节点网状组织，链接导航</td>
 </tr>
 </tbody></table>
-<h1 id="考试方向"><a href="#考试方向" class="headerlink" title="考试方向"></a>考试方向</h1><p>主要是给个场景，让你选择架构，并且告诉为什么选这个架构， 个别架构考怎么设计， 连接器和构件是什么</p>
+<p><strong>连接件三类速记：</strong> 调用类（过程&#x2F;方法&#x2F;子程序调用）→ 消息&#x2F;事件类（事件广播、消息、RPC）→ 数据共享类（管道、黑板读写、SQL、链接）。</p>
+<h2 id="四、典型应用场景"><a href="#四、典型应用场景" class="headerlink" title="四、典型应用场景"></a>四、典型应用场景</h2><table>
+<thead>
+<tr>
+<th>所属风格</th>
+<th>子风格</th>
+<th>典型应用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>调用返回</td>
+<td>分层</td>
+<td>Web&#x2F;信息管理系统（JavaEE 三层 MVC）、电商系统、企业级应用（表现层&#x2F;业务层&#x2F;数据层分离）</td>
+</tr>
+<tr>
+<td>调用返回</td>
+<td>面向对象</td>
+<td>大多数业务系统、桌面应用、图形化系统（对象建模）、游戏对象管理</td>
+</tr>
+<tr>
+<td>调用返回</td>
+<td>主程序-子程序</td>
+<td>命令行工具、批处理小工具、嵌入式简单控制程序、传统结构化程序（Fortran&#x2F;C）</td>
+</tr>
+<tr>
+<td>数据流</td>
+<td>管道-过滤</td>
+<td>Unix 管道命令（grep&#x2F;sort&#x2F;awk）、编译器流水线（词法→语法→语义）、图像处理链、ETL、信号&#x2F;语音处理链</td>
+</tr>
+<tr>
+<td>数据流</td>
+<td>批处理</td>
+<td>银行批量转账&#x2F;对账、报表生成、离线统计、数据仓库 ETL 批处理、工资核算</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>隐式调用(事件)</td>
+<td>GUI 事件处理（按钮点击）、消息中间件、微服务事件驱动、发布-订阅系统（如 Kafka）、浏览器 DOM 事件</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>C2</td>
+<td>复杂 GUI（分层+事件）、CAD、图形编辑器、分布式交互系统</td>
+</tr>
+<tr>
+<td>独立构件</td>
+<td>进程通信</td>
+<td>分布式系统、微服务（RPC&#x2F;REST）、操作系统进程间通信、SOA 服务交互</td>
+</tr>
+<tr>
+<td>虚拟机</td>
+<td>解释器</td>
+<td>Java 虚拟机(JVM)、Python 等解释型语言运行时、脚本引擎、正则表达式引擎、浏览器 JS 引擎</td>
+</tr>
+<tr>
+<td>虚拟机</td>
+<td>基于规则</td>
+<td>专家系统、规则引擎（Drools）、业务规则管理系统、诊断系统、工作流规则、智能决策系统</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>黑板</td>
+<td>语音识别（HEARSAY-II）、图像理解、多专家协作诊断、AI 问题求解（无确定算法）</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>数据库</td>
+<td>信息管理系统、金融交易系统、企业 ERP&#x2F;CRM、一切以数据库为核心的系统</td>
+</tr>
+<tr>
+<td>仓库</td>
+<td>超文本</td>
+<td>万维网(WWW)、维基百科、电子文档知识库、Web 站点导航</td>
+</tr>
+</tbody></table>
+<p><strong>场景速记：</strong> 分层→企业应用；管道→流水线&#x2F;Unix管道；事件→点击&#x2F;发布订阅；C2→GUI分层解耦；脚本&#x2F;规则可改→解释器&#x2F;规则；多知识源无确定算法→黑板；数据集中事务→数据库；节点链接→超文本。</p>
+<h2 id="五、易混点辨析（软考最爱挖坑）"><a href="#五、易混点辨析（软考最爱挖坑）" class="headerlink" title="五、易混点辨析（软考最爱挖坑）"></a>五、易混点辨析（软考最爱挖坑）</h2><p><strong>1. 隐式调用 vs C2</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>隐式调用</th>
+<th>C2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>结构</td>
+<td>无固定结构、平铺</td>
+<td>严格分层</td>
+</tr>
+<tr>
+<td>通信</td>
+<td>事件广播、无方向</td>
+<td>受限消息：request 向下 &#x2F; notification 向上</td>
+</tr>
+<tr>
+<td>规则</td>
+<td>谁订阅谁响应</td>
+<td>只能上下相邻层经连接件通信，不能越层&#x2F;同层直连</td>
+</tr>
+<tr>
+<td>可测试&#x2F;可维护</td>
+<td>弱（控制流隐式）</td>
+<td>中（分层约束更可控）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>C2 &#x3D; 在”事件解耦”基础上 + 分层通信规则，弥补隐式调用”无结构、难跟踪”的缺点。</p>
+</blockquote>
+<p><strong>2. 黑板 vs 基于规则（专家系统的两个层面）</strong></p>
+<ul>
+<li><strong>单个专家系统</strong> &#x3D; 规则库 + 推理机 → <strong>虚拟机（基于规则）</strong>。</li>
+<li><strong>多个专家&#x2F;知识源协作</strong>（共享黑板、机会主义调度）→ <strong>仓库（黑板）</strong>。</li>
+<li>二者<strong>可嵌套</strong>：黑板是外层架构（多知识源如何组织），每个知识源内部往往是规则系统（虚拟机）。</li>
+<li>判断锚点：看题干是”<strong>一个知识库+推理机</strong>“（规则）还是”<strong>多个知识源共享工作区协同求解</strong>“（黑板）。</li>
+</ul>
+<p><strong>3. 管道-过滤的修改&#x2F;扩展是有边界的</strong></p>
+<ul>
+<li><strong>可修改性强</strong> &#x3D; 改过滤器<strong>内部逻辑</strong>局部化（上下游无感知），前提是<strong>接口&#x2F;数据格式稳定</strong>。</li>
+<li><strong>可扩展性强</strong> &#x3D; <strong>新增</strong>过滤器是插拔式（加环节不改已有模块）。</li>
+<li>一旦新增需求<strong>改变数据格式 &#x2F; 需要共享状态 &#x2F; 非顺序交互</strong>，优势消失，甚至不适合。</li>
+</ul>
+<p><strong>4. 可修改性 vs 可扩展性</strong></p>
+<ul>
+<li>可修改性 &#x3D; 改<strong>现有</strong>功能的成本；可扩展性 &#x3D; <strong>新增</strong>功能的成本。两者都要看”局部化程度”。</li>
+</ul>
+<h2 id="六、选型决策：需求-→-风格映射"><a href="#六、选型决策：需求-→-风格映射" class="headerlink" title="六、选型决策：需求 → 风格映射"></a>六、选型决策：需求 → 风格映射</h2><table>
+<thead>
+<tr>
+<th>需求特征</th>
+<th>倾向风格</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分层&#x2F;前后端分离&#x2F;企业应用&#x2F;数据访问隔离</td>
+<td>分层</td>
+</tr>
+<tr>
+<td>数据流水线、分步变换、Unix 管道</td>
+<td>管道-过滤</td>
+</tr>
+<tr>
+<td>离线整批、流程固定</td>
+<td>批处理</td>
+</tr>
+<tr>
+<td>事件驱动、发布订阅、响应式解耦</td>
+<td>隐式调用(事件)</td>
+</tr>
+<tr>
+<td>GUI + 要分层又要解耦又要可控</td>
+<td>C2</td>
+</tr>
+<tr>
+<td>分布式、微服务、RPC 交互</td>
+<td>进程通信</td>
+</tr>
+<tr>
+<td>脚本&#x2F;规则可改、可移植、运行时解释</td>
+<td>解释器</td>
+</tr>
+<tr>
+<td>规则库+推理、专家系统、业务规则热更</td>
+<td>基于规则</td>
+</tr>
+<tr>
+<td>多知识源协同、无确定算法</td>
+<td>黑板</td>
+</tr>
+<tr>
+<td>数据集中、事务、一致性、多系统共享</td>
+<td>数据库</td>
+</tr>
+<tr>
+<td>节点+链接、知识&#x2F;资料组织</td>
+<td>超文本</td>
+</tr>
+<tr>
+<td>简单小工具、性能优先</td>
+<td>主程序-子程序</td>
+</tr>
+<tr>
+<td>业务对象建模、数据+行为内聚</td>
+<td>面向对象</td>
+</tr>
+</tbody></table>
+<h2 id="七、考试方向与答题模板"><a href="#七、考试方向与答题模板" class="headerlink" title="七、考试方向与答题模板"></a>七、考试方向与答题模板</h2><p><strong>考法（三选一&#x2F;组合）：</strong></p>
+<ol>
+<li><strong>给场景选架构</strong>：给系统描述 → 判断用哪种风格，并说明为什么（从质量属性&#x2F;构件连接件角度）。</li>
+<li><strong>考设计</strong>：要求画出架构、描述构件&#x2F;连接件、说明约束拓扑。</li>
+<li><strong>考辨析&#x2F;权衡</strong>：两种风格对比，或对某个质量属性的边界提问。</li>
+</ol>
+<p><strong>选型题答题模板（按此框架不丢分）：</strong></p>
+<ol>
+<li><strong>明确结论</strong>：该系统适合采用「XX」风格。</li>
+<li><strong>从需求反推理由</strong>：需求 X（如新增模块不改已有）→ 该风格特征 Y（强解耦&#x2F;可插拔&#x2F;可扩展），至少覆盖 2 个关键质量属性。</li>
+<li><strong>构件 + 连接件</strong>：系统由「XX、XX、XX」等构件组成，通过「XX」连接件交互（说明方向&#x2F;规则）。</li>
+<li><strong>权衡</strong>：说明该风格的优势与代价（如 C2 用分层约束换可控，代价是不能越层&#x2F;同层直连）。</li>
+<li><strong>对比排除</strong>（加分）：为何不用另一风格（如”纯隐式调用难追踪”）。</li>
+</ol>
+<h1 id="记忆口诀"><a href="#记忆口诀" class="headerlink" title="记忆口诀"></a>记忆口诀</h1><ul>
+<li><strong>性能弱四兄弟</strong>：管道、解释器、基于规则、黑板（运行时多一层间接）。</li>
+<li><strong>可测试&#x2F;可维护最差</strong>：隐式调用（调用链不透明）。</li>
+<li><strong>安全性最强</strong>：数据库（事务&#x2F;权限&#x2F;一致性）。</li>
+<li><strong>连接件三类</strong>：调用 &#x2F; 消息事件 &#x2F; 数据共享。</li>
+<li><strong>C2 方向</strong>：请求向下、通知向上（request↓ &#x2F; notification↑）。</li>
+</ul>
 
   </div>
 </article>
@@ -496,7 +699,7 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%87%8D%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">重点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">常用的架构风格：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A3%8E%E6%A0%BC%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">风格对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E4%BB%B6%E5%92%8C%E8%BF%9E%E9%80%9A%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">组件和连通器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%80%83%E8%AF%95%E6%96%B9%E5%90%91"><span class="toc-number">2.</span> <span class="toc-text">考试方向</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%87%8D%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">重点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BA%94%E5%A4%A7%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC%E6%80%BB%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">一、五大架构风格总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E9%A3%8E%E6%A0%BC%E5%AF%B9%E6%AF%94%EF%BC%88%E8%B4%A8%E9%87%8F%E5%B1%9E%E6%80%A7%E7%9F%A9%E9%98%B5%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">二、风格对比（质量属性矩阵）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%9E%84%E4%BB%B6%E4%B8%8E%E8%BF%9E%E6%8E%A5%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">三、构件与连接件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.4.</span> <span class="toc-text">四、典型应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%98%93%E6%B7%B7%E7%82%B9%E8%BE%A8%E6%9E%90%EF%BC%88%E8%BD%AF%E8%80%83%E6%9C%80%E7%88%B1%E6%8C%96%E5%9D%91%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">五、易混点辨析（软考最爱挖坑）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%EF%BC%9A%E9%9C%80%E6%B1%82-%E2%86%92-%E9%A3%8E%E6%A0%BC%E6%98%A0%E5%B0%84"><span class="toc-number">1.6.</span> <span class="toc-text">六、选型决策：需求 → 风格映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E8%80%83%E8%AF%95%E6%96%B9%E5%90%91%E4%B8%8E%E7%AD%94%E9%A2%98%E6%A8%A1%E6%9D%BF"><span class="toc-number">1.7.</span> <span class="toc-text">七、考试方向与答题模板</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%B0%E5%BF%86%E5%8F%A3%E8%AF%80"><span class="toc-number">2.</span> <span class="toc-text">记忆口诀</span></a></li></ol>
       </div>
     
 
